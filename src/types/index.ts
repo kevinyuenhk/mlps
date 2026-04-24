@@ -1,7 +1,3 @@
-// ============================================================
-// Core domain types for the God Adventurer MVP
-// ============================================================
-
 export type TraitName =
   | 'Brave'
   | 'Loyal'
@@ -26,19 +22,15 @@ export interface Adventurer {
   name: string;
   class: AdventurerClass;
   traits: TraitName[];
-  faith: number;     // 0–100: how strongly they respond to divine commands
-  loyalty: number;   // 0–100: how much their vote counts in party decisions
+  faith: number;
+  loyalty: number;
   hp: number;
   maxHp: number;
-  stress: number;    // 0–100: high stress reduces rational behavior
+  stress: number;
   alive: boolean;
   riskBias: 'low' | 'medium' | 'high';
   shortBio: string;
 }
-
-// --------------------------------------------------------
-// Oracle / Divine Intent
-// --------------------------------------------------------
 
 export type PrimaryGoal =
   | 'recover_relic'
@@ -64,15 +56,14 @@ export interface OracleConfig {
   startingBlessing: BlessingType;
 }
 
-/** Normalized numerical signals derived from oracle config */
 export interface ParsedSignals {
-  survivalPriority: number;   // 0–1
-  mercyPriority: number;      // 0–1
-  greedAllowance: number;     // 0–1
-  aggression: number;         // 0–1
-  urgency: number;            // 0–1
-  stealthPreference: number;  // 0–1
-  missionFocus: number;       // 0–1
+  survivalPriority: number;
+  mercyPriority: number;
+  greedAllowance: number;
+  aggression: number;
+  urgency: number;
+  stealthPreference: number;
+  missionFocus: number;
 }
 
 export interface DivinIntent {
@@ -83,66 +74,66 @@ export interface DivinIntent {
   parsedSignals: ParsedSignals;
 }
 
-// --------------------------------------------------------
-// Events
-// --------------------------------------------------------
-
-export type EventType =
-  | 'route_choice'
-  | 'moral_dilemma'
-  | 'temptation'
+export type RoomType =
+  | 'entrance'
   | 'combat'
+  | 'hazard'
+  | 'choice'
+  | 'treasure'
+  | 'shrine'
   | 'boss'
-  | 'extraction';
+  | 'exit';
+
+export type RiskLevel = 'low' | 'medium' | 'high';
+
+export interface RoomOutcome {
+  hpChange: number;
+  stressChange: number;
+  loyaltyChange: number;
+  faithChange: number;
+  summary: string;
+  relicProgress: boolean;
+  loot: number;
+}
 
 export interface EventOption {
   id: string;
   label: string;
   description: string;
-  riskLevel: 'low' | 'medium' | 'high';
-  /** Inherent appeal of this option, independent of character/intent */
+  riskLevel: RiskLevel;
   baseWeight: number;
-  /** How well this option aligns with each signal — used for divine intent scoring */
   signalAlignment: Partial<ParsedSignals>;
-  /** Per-trait bonus (+) or penalty (−) when scoring this option */
   traitBonuses: Partial<Record<TraitName, number>>;
-  outcome: EventOutcome;
-}
-
-export interface EventOutcome {
-  hpChange: number;          // applied to each living party member
-  stressChange: number;
-  loyaltyChange: number;
-  faithChange: number;
-  narrativeResult: string;   // shown after resolution
-  relicProgress: boolean;    // does this option secure the relic? (boss event)
+  intentLabel: string;
+  intentIcon: string;
+  outcome: RoomOutcome;
 }
 
 export interface GameEvent {
   id: string;
   title: string;
   description: string;
-  type: EventType;
+  type: Exclude<RoomType, 'entrance'>;
   nodeId: string;
+  badge: string;
+  icon: string;
   options: EventOption[];
 }
 
-// --------------------------------------------------------
-// Expedition map
-// --------------------------------------------------------
-
-export interface ExpeditionNode {
+export interface DungeonNode {
   id: string;
   name: string;
   description: string;
+  type: RoomType;
   eventId?: string;
-  position: number;  // 0-based index in node sequence
-  icon: string;      // emoji for map display
+  icon: string;
+  depth: number;
+  x: number;
+  y: number;
+  nextNodeIds: string[];
 }
 
-// --------------------------------------------------------
-// Decision engine output
-// --------------------------------------------------------
+export type ExpeditionNode = DungeonNode;
 
 export interface DecisionBreakdown {
   baseWeight: number;
@@ -158,8 +149,8 @@ export interface CharacterDecision {
   characterId: string;
   characterName: string;
   preferredOptionId: string;
-  scores: Record<string, number>;      // optionId → score
-  tags: Record<string, string[]>;      // optionId → explanation tags
+  scores: Record<string, number>;
+  tags: Record<string, string[]>;
   breakdown: Record<string, DecisionBreakdown>;
 }
 
@@ -167,26 +158,21 @@ export interface EventResolution {
   eventId: string;
   nodeId: string;
   nodeName: string;
+  nodeType: RoomType;
   chosenOptionId: string;
   chosenOptionLabel: string;
   characterDecisions: CharacterDecision[];
   aggregateScores: Record<string, number>;
-  narrativeLog: string;
   outcomeText: string;
-  /** Did the chosen option match what divine intent would have preferred? */
   followedDivineIntent: boolean;
-  /** Dominant signal driving the divine-preferred option */
   divinePreferredOptionId: string;
   divergenceNote?: string;
   hpChangePerMember: number;
   stressChangePerMember: number;
   interventionUsed?: InterventionType;
   relicSecured: boolean;
+  lootDelta: number;
 }
-
-// --------------------------------------------------------
-// Interventions
-// --------------------------------------------------------
 
 export type InterventionType = 'omen' | 'blessing' | 'miracle';
 
@@ -198,16 +184,19 @@ export interface Intervention {
   flavorText: string;
 }
 
-// --------------------------------------------------------
-// Run state
-// --------------------------------------------------------
-
 export type GamePhase =
   | 'title'
   | 'party_selection'
   | 'oracle_setup'
   | 'expedition'
   | 'result';
+
+export interface LogEntry {
+  id: string;
+  timestamp: number;
+  type: 'arrival' | 'decision' | 'outcome' | 'intervention' | 'system';
+  text: string;
+}
 
 export interface RunState {
   phase: GamePhase;
@@ -217,30 +206,23 @@ export interface RunState {
   oracleConfig: OracleConfig | null;
   divinePower: number;
   maxDivinePower: number;
-  currentNodeIndex: number;
-  nodes: ExpeditionNode[];
+  currentNodeId: string;
+  nodes: DungeonNode[];
+  visibleNodeIds: string[];
+  resolvedNodeIds: string[];
+  pathTaken: string[];
   resolutions: EventResolution[];
   relicRecovered: boolean;
+  bossCleared: boolean;
+  escaped: boolean;
+  totalLoot: number;
   expeditionLog: LogEntry[];
-  interventionsUsed: Array<{ type: InterventionType; nodeIndex: number; optionId?: string }>;
+  interventionsUsed: Array<{ type: InterventionType; nodeId: string; optionId?: string }>;
   activeBlessing: BlessingType | null;
   expeditionComplete: boolean;
-  /** Omen active: boosts a specific option's aggregate score */
   activeOmenOptionId: string | null;
-  /** Blessing active: temporary loyalty/loyalty boost for next resolution */
   activeBlessingBoost: boolean;
 }
-
-export interface LogEntry {
-  id: string;
-  timestamp: number;
-  type: 'arrival' | 'event' | 'decision' | 'outcome' | 'intervention' | 'info';
-  text: string;
-}
-
-// --------------------------------------------------------
-// Trait metadata
-// --------------------------------------------------------
 
 export interface TraitMeta {
   name: TraitName;

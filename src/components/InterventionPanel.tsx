@@ -2,126 +2,70 @@ import type { GameEvent, InterventionType, RunState } from '../types';
 
 interface Props {
   state: RunState;
-  currentEvent: GameEvent | null;
+  currentEvent: GameEvent;
   onIntervene: (type: InterventionType, optionId?: string) => void;
-  eventResolved: boolean;
 }
 
-interface InterventionDef {
+const INTERVENTIONS: Array<{
   type: InterventionType;
   label: string;
-  shortDesc: string;
+  note: string;
   cost: number;
   icon: string;
-}
-
-const DEFS: InterventionDef[] = [
-  {
-    type: 'omen',
-    label: '發送神諭',
-    shortDesc: '引導隊伍傾向某個選項。點擊後請選擇目標選項。',
-    cost: 1,
-    icon: '👁',
-  },
-  {
-    type: 'blessing',
-    label: '賜予祝福',
-    shortDesc: '增強凝聚力。本回合隊伍投票更為一致。',
-    cost: 1,
-    icon: '✦',
-  },
-  {
-    type: 'miracle',
-    label: '施展奇蹟',
-    shortDesc: '治癒全體（+20 體力，−20 壓力）。強大但耗費高昂。',
-    cost: 2,
-    icon: '⚡',
-  },
+}> = [
+  { type: 'omen', label: '神諭', note: '引導行動。', cost: 1, icon: '👁️' },
+  { type: 'blessing', label: '祝福', note: '提升隊伍忠誠權重。', cost: 1, icon: '✨' },
+  { type: 'miracle', label: '奇蹟', note: '全隊體力+20，壓力-20。', cost: 2, icon: '✚' },
 ];
 
-export default function InterventionPanel({
-  state,
-  currentEvent,
-  onIntervene,
-  eventResolved,
-}: Props) {
-  const { divinePower, activeBlessing, interventionsUsed, activeOmenOptionId, activeBlessingBoost } = state;
-
+export default function InterventionPanel({ state, currentEvent, onIntervene }: Props) {
   const firstOmenFree =
-    activeBlessing === 'guiding_omen' &&
-    !interventionsUsed.some((i) => i.type === 'omen');
-
-  function canAfford(cost: number, type: InterventionType): boolean {
-    const effectiveCost = type === 'omen' && firstOmenFree ? 0 : cost;
-    return divinePower >= effectiveCost;
-  }
+    state.activeBlessing === 'guiding_omen' &&
+    !state.interventionsUsed.some((entry) => entry.type === 'omen');
 
   return (
-    <div className="flex gap-2 flex-wrap justify-center">
-      {DEFS.map((def) => {
-        const effectiveCost = def.type === 'omen' && firstOmenFree ? 0 : def.cost;
-        const affordable = canAfford(def.cost, def.type);
-        const alreadyActive =
-          (def.type === 'omen' && activeOmenOptionId !== null) ||
-          (def.type === 'blessing' && activeBlessingBoost);
-        const disabled = !affordable || eventResolved || alreadyActive;
+    <div className="grid gap-2">
+      <div className="text-[11px] uppercase tracking-[0.25em] text-stone-500">神聖干預</div>
+      <div className="grid gap-2 sm:grid-cols-3">
+        {INTERVENTIONS.map((intervention) => {
+          const cost = intervention.type === 'omen' && firstOmenFree ? 0 : intervention.cost;
+          const disabled = state.divinePower < cost;
+          const active =
+            (intervention.type === 'omen' && state.activeOmenOptionId) ||
+            (intervention.type === 'blessing' && state.activeBlessingBoost);
 
-        return (
-          <div key={def.type} className="relative group">
+          return (
             <button
-              disabled={disabled}
-              onClick={() => {
-                if (def.type === 'omen') {
-                  // 神諭需要選擇目標選項 — 透過父元件觸發提示
-                  onIntervene('omen');
-                } else {
-                  onIntervene(def.type);
-                }
-              }}
+              key={intervention.type}
+              type="button"
+              onClick={() => onIntervene(intervention.type)}
+              disabled={disabled || Boolean(active)}
               className={[
-                'flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all',
-                alreadyActive
-                  ? 'bg-violet-900 border-violet-600 text-violet-300'
-                  : affordable && !eventResolved
-                  ? 'bg-gray-800 border-gray-600 hover:border-amber-500 hover:text-amber-300 text-gray-300'
-                  : 'bg-gray-900 border-gray-700 text-gray-600 cursor-not-allowed',
-              ]
-                .filter(Boolean)
-                .join(' ')}
+                'rounded-2xl border px-3 py-3 text-left transition',
+                disabled || active
+                  ? 'border-stone-800 bg-stone-950/60 text-stone-600'
+                  : 'border-stone-700 bg-stone-950/80 text-stone-200 hover:border-amber-300/50',
+              ].join(' ')}
             >
-              <span>{def.icon}</span>
-              <span>{def.label}</span>
-              <span
-                className={`text-xs px-1.5 py-0.5 rounded ${
-                  effectiveCost === 0
-                    ? 'bg-green-900 text-green-400'
-                    : 'bg-gray-700 text-gray-400'
-                }`}
-              >
-                {effectiveCost === 0 ? '免費' : `${effectiveCost}⚡`}
-              </span>
-              {alreadyActive && (
-                <span className="text-xs text-violet-400">已啟動</span>
-              )}
+              <div className="mb-1 flex items-center justify-between">
+                <span className="text-base">{intervention.icon}</span>
+                <span className="text-[11px] uppercase tracking-[0.22em] text-amber-100">
+                  {cost === 0 ? '免費' : `${cost} 點`}
+                </span>
+              </div>
+              <div className="text-sm font-semibold">{intervention.label}</div>
+              <div className="mt-1 text-xs text-stone-500">{intervention.note}</div>
             </button>
+          );
+        })}
+      </div>
 
-            {/* Tooltip */}
-            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-52 bg-gray-800 border border-gray-600 rounded-lg p-2 text-xs text-gray-300 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10 shadow-xl">
-              {def.shortDesc}
-              {def.type === 'omen' && currentEvent && (
-                <div className="mt-1 text-gray-500">
-                  選項：{currentEvent.options.map((o) => o.label).join('、')}
-                </div>
-              )}
-              {firstOmenFree && def.type === 'omen' && (
-                <div className="mt-1 text-green-400">
-                  「引導神諭」：第一次使用免費！
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      })}
+      {state.activeOmenOptionId && (
+        <div className="rounded-2xl border border-violet-300/30 bg-violet-300/10 px-3 py-2 text-xs text-violet-100">
+          神諭已鎖定：{''}
+          {currentEvent.options.find((option) => option.id === state.activeOmenOptionId)?.label}
+        </div>
+      )}
     </div>
   );
 }

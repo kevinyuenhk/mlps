@@ -1,5 +1,11 @@
 import type { DivinIntent, ParsedSignals } from '../types';
-import { signalLabel, goalLabel, priorityLabel, riskLabel } from '../utils/helpers';
+import {
+  goalLabel,
+  priorityLabel,
+  riskLabel,
+  signalIcon,
+  signalLabel,
+} from '../utils/helpers';
 
 interface Props {
   intent: DivinIntent;
@@ -16,69 +22,56 @@ const SIGNAL_KEYS: (keyof ParsedSignals)[] = [
   'greedAllowance',
 ];
 
-function SignalBar({ label, value }: { label: string; value: number }) {
-  const pct = Math.round(value * 100);
-  let barColor = 'bg-gray-600';
-  if (value >= 0.65) barColor = 'bg-amber-500';
-  else if (value >= 0.4) barColor = 'bg-amber-700';
-  else if (value < 0.2) barColor = 'bg-gray-700';
-
+function SignalBar({ signal, value }: { signal: keyof ParsedSignals; value: number }) {
   return (
-    <div className="signal-row">
-      <span className="w-28 shrink-0 text-gray-400">{label}</span>
-      <div className="flex-1 stat-bar-wrap">
+    <div className="space-y-1">
+      <div className="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.22em] text-stone-500">
+        <span className="flex items-center gap-2">
+          <span>{signalIcon(signal)}</span>
+          <span>{signalLabel(signal)}</span>
+        </span>
+        <span className="text-stone-300">{Math.round(value * 100)}%</span>
+      </div>
+      <div className="stat-bar-wrap h-2 bg-stone-800">
         <div
-          className={`h-full rounded-full transition-all ${barColor}`}
-          style={{ width: `${pct}%` }}
+          className="h-full rounded-full bg-[linear-gradient(90deg,#f2ca74,#a17734)]"
+          style={{ width: `${Math.round(value * 100)}%` }}
         />
       </div>
-      <span className="w-8 text-right text-gray-500">{pct}%</span>
     </div>
   );
 }
 
 export default function OracleSummary({ intent, compact = false }: Props) {
+  const wrapperClass = compact ? 'space-y-4' : 'panel p-4 space-y-4';
+
   return (
-    <div className={compact ? '' : 'panel p-4'}>
-      {!compact && (
-        <h3 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-3">
-          神聖意志摘要
-        </h3>
-      )}
-
-      <div className="space-y-2 text-xs mb-3">
-        <div className="flex gap-2">
-          <span className="text-gray-500">目標：</span>
-          <span className="text-amber-300 font-medium">{goalLabel(intent.primaryGoal)}</span>
-        </div>
-        {intent.priorities.length > 0 && (
-          <div className="flex gap-2 flex-wrap">
-            <span className="text-gray-500 shrink-0">優先事項：</span>
-            <div className="flex flex-wrap gap-1">
-              {intent.priorities.map((p) => (
-                <span key={p} className="trait-badge">{priorityLabel(p)}</span>
-              ))}
-            </div>
-          </div>
-        )}
-        <div className="flex gap-2">
-          <span className="text-gray-500">風險：</span>
-          <span className="text-gray-300">{riskLabel(intent.riskTolerance)}</span>
-        </div>
-        {intent.addendumText && (
-          <div className="text-gray-500 italic">「{intent.addendumText}」</div>
-        )}
-      </div>
-
-      <div className="space-y-1.5">
-        {SIGNAL_KEYS.map((key) => (
-          <SignalBar
-            key={key}
-            label={signalLabel(key)}
-            value={intent.parsedSignals[key]}
-          />
+    <div className={wrapperClass}>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-xs text-amber-100">
+          {goalLabel(intent.primaryGoal)}
+        </span>
+        <span className="rounded-full border border-stone-700 px-3 py-1 text-xs text-stone-300">
+          {riskLabel(intent.riskTolerance)}
+        </span>
+        {intent.priorities.map((priority) => (
+          <span key={priority} className="rounded-full border border-stone-700 px-3 py-1 text-xs text-stone-400">
+            {priorityLabel(priority)}
+          </span>
         ))}
       </div>
+
+      <div className="grid gap-3">
+        {SIGNAL_KEYS.map((signal) => (
+          <SignalBar key={signal} signal={signal} value={intent.parsedSignals[signal]} />
+        ))}
+      </div>
+
+      {intent.addendumText.trim() && (
+        <div className="rounded-2xl border border-stone-800 bg-stone-950/70 px-3 py-3 text-sm text-stone-400">
+          {intent.addendumText}
+        </div>
+      )}
     </div>
   );
 }

@@ -4,62 +4,75 @@ interface Props {
 
 export default function TitleScreen({ onStart }: Props) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-8 relative overflow-hidden">
-      {/* Background atmosphere */}
-      <div className="absolute inset-0 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 opacity-80" />
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-amber-900/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[400px] h-[200px] bg-violet-900/10 rounded-full blur-3xl" />
+    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,#3a2d1d_0%,#161616_32%,#0a0d12_72%)]">
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.03)_50%,transparent_100%)] opacity-40" />
+      <div className="absolute inset-x-0 top-0 h-80 bg-[radial-gradient(circle_at_center,rgba(240,184,85,0.18),transparent_70%)]" />
+      <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-10">
+        <div className="grid gap-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-300/10 px-4 py-1 text-xs uppercase tracking-[0.35em] text-amber-100/80">
+              神諭遠征 MVP
+            </div>
+            <div className="space-y-4">
+              <h1 className="max-w-3xl font-serif text-5xl leading-none text-stone-100 sm:text-6xl lg:text-7xl">
+                地牢突擊
+                <span className="mt-2 block text-amber-200/90">神在上，隊在下。</span>
+              </h1>
+              <p className="max-w-2xl text-base text-stone-300/75 sm:text-lg">
+                選三名冒險者、設神諭、闖房間、打倒守護者、逃出生天。
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {[
+                ['🧭', '3 選', '5 人中選 3'],
+                ['🗺️', '分支地圖', '迷霧節點與路線抉擇'],
+                ['✨', '神諭驅動', '神諭、祝福、奇蹟'],
+              ].map(([icon, label, text]) => (
+                <div key={label} className="panel panel-strong p-4">
+                  <div className="mb-2 text-2xl">{icon}</div>
+                  <div className="text-sm font-semibold text-stone-100">{label}</div>
+                  <div className="text-xs text-stone-400">{text}</div>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <button onClick={onStart} className="btn-primary px-8 py-3 text-base">
+                開始突擊
+              </button>
+              <div className="text-sm text-stone-400">6-8 房 • 首領 + 逃脫 • AI 角色性格驅動</div>
+            </div>
+          </div>
 
-      <div className="relative z-10 flex flex-col items-center gap-6 sm:gap-8 max-w-lg text-center">
-        {/* Divine symbol */}
-        <div className="text-5xl sm:text-7xl animate-pulse-slow select-none">⚡</div>
-
-        {/* Title */}
-        <div>
-          <h1 className="text-4xl sm:text-5xl font-bold text-amber-400 tracking-tight mb-2 font-serif">
-            神聖遠征
-          </h1>
-          <p className="text-base sm:text-lg text-gray-400">
-            你是一名初生的神明。
-          </p>
-        </div>
-
-        {/* Tagline */}
-        <div className="border border-gray-700 rounded-xl p-4 sm:p-5 bg-gray-900/60 backdrop-blur">
-          <p className="text-gray-300 leading-relaxed text-sm sm:text-base">
-            派遣信徒深入鬧鬼墓地，取回神聖神器。
-            你無法操縱凡人——你只能引導、祝福，並祈求他們服從。
-          </p>
-        </div>
-
-        {/* Three pillars */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-sm text-center w-full">
-          {[
-            { icon: '🗣', label: '下達神諭', desc: '透過神諭設定意圖' },
-            { icon: '👁', label: '觀察與理解', desc: '隊伍會自行詮釋你的意志' },
-            { icon: '⚡', label: '謹慎干預', desc: '奇蹟次數有限' },
-          ].map((p) => (
-            <div key={p.label} className="panel p-3 flex sm:flex-col flex-row items-center gap-3 sm:gap-1 text-left sm:text-center">
-              <span className="text-xl shrink-0">{p.icon}</span>
+          <div className="panel panel-strong p-5">
+            <div className="mb-4 flex items-center justify-between">
               <div>
-                <div className="text-xs font-medium text-gray-300">{p.label}</div>
-                <div className="text-xs text-gray-600">{p.desc}</div>
+                <div className="text-xs uppercase tracking-[0.3em] text-stone-500">流程</div>
+                <div className="text-lg font-semibold text-stone-100">一覽</div>
+              </div>
+              <div className="rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1 text-xs text-amber-100">
+                MVP 重構
               </div>
             </div>
-          ))}
+            <div className="space-y-3">
+              {[
+                '標題',
+                '選隊',
+                '設神諭',
+                '突擊地牢',
+                '首領',
+                '逃脫',
+                '報告',
+              ].map((step, index) => (
+                <div key={step} className="flex items-center gap-3 rounded-2xl border border-stone-800 bg-stone-950/40 px-3 py-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-700 bg-stone-900 text-sm text-amber-200">
+                    {index + 1}
+                  </div>
+                  <div className="text-sm text-stone-200">{step}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-
-        {/* Start button */}
-        <button
-          onClick={onStart}
-          className="btn-primary text-base sm:text-lg px-10 py-3 w-full max-w-xs"
-        >
-          開始你的統治
-        </button>
-
-        <p className="text-xs text-gray-700">
-          一次遠征 · 一局遊戲 · 約10分鐘
-        </p>
       </div>
     </div>
   );

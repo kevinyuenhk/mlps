@@ -1,5 +1,11 @@
 import type { Adventurer } from '../types';
-import { characterClassIcon, classDisplayName, hpColor, stressColor, traitDisplayName } from '../utils/helpers';
+import {
+  characterClassIcon,
+  classDisplayName,
+  hpColor,
+  stressColor,
+  traitDisplayName,
+} from '../utils/helpers';
 
 interface Props {
   party: Adventurer[];
@@ -7,100 +13,90 @@ interface Props {
   maxDivinePower: number;
 }
 
-function MiniBar({
+function StatBar({
+  label,
   value,
   max,
   colorClass,
 }: {
+  label: string;
   value: number;
   max: number;
   colorClass: string;
 }) {
+  const width = Math.max(0, Math.min(100, (value / max) * 100));
   return (
-    <div className="stat-bar-wrap w-full">
-      <div
-        className={`h-full rounded-full transition-all ${colorClass}`}
-        style={{ width: `${Math.max(0, (value / max) * 100)}%` }}
-      />
-    </div>
-  );
-}
-
-function CharacterRow({ a }: { a: Adventurer }) {
-  return (
-    <div className={`p-3 rounded-lg bg-gray-800 border border-gray-700 ${!a.alive ? 'opacity-40' : ''}`}>
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-base">{characterClassIcon(a.class)}</span>
-        <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-baseline">
-            <span className="text-sm font-medium text-gray-100 truncate">{a.name}</span>
-            <span className="text-xs text-gray-500 ml-1">{classDisplayName(a.class)}</span>
-          </div>
-        </div>
-        {!a.alive && <span className="text-xs text-red-400 shrink-0">✗</span>}
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.22em] text-stone-500">
+        <span>{label}</span>
+        <span className="text-stone-300">{Math.round(value)}</span>
       </div>
-
-      <div className="flex flex-wrap gap-1 mb-2">
-        {a.traits.map((t) => (
-          <span key={t} className="text-xs px-1.5 py-0.5 rounded bg-gray-700 text-gray-400">
-            {traitDisplayName(t)}
-          </span>
-        ))}
-      </div>
-
-      <div className="space-y-1.5">
-        <div className="grid grid-cols-[40px_1fr_32px] items-center gap-1 text-xs text-gray-500">
-          <span>體力</span>
-          <MiniBar value={a.hp} max={a.maxHp} colorClass={hpColor(a.hp, a.maxHp)} />
-          <span className="text-right">{a.hp}</span>
-        </div>
-        <div className="grid grid-cols-[40px_1fr_32px] items-center gap-1 text-xs text-gray-500">
-          <span>壓力</span>
-          <MiniBar value={a.stress} max={100} colorClass={stressColor(a.stress)} />
-          <span className="text-right">{a.stress}</span>
-        </div>
-        <div className="grid grid-cols-[40px_1fr_32px] items-center gap-1 text-xs text-gray-500">
-          <span>信仰</span>
-          <MiniBar value={a.faith} max={100} colorClass="bg-violet-500" />
-          <span className="text-right">{a.faith}</span>
-        </div>
+      <div className="stat-bar-wrap h-2 bg-stone-800">
+        <div className={`h-full rounded-full ${colorClass}`} style={{ width: `${width}%` }} />
       </div>
     </div>
   );
 }
 
 export default function PartyPanel({ party, divinePower, maxDivinePower }: Props) {
-  const powerDots = Array.from({ length: maxDivinePower }, (_, i) => i < divinePower);
-
   return (
-    <div className="panel flex flex-col h-full overflow-hidden">
-      <div className="panel-header">隊伍</div>
-
-      {/* Divine Power */}
-      <div className="px-4 py-3 border-b border-gray-700">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs text-gray-500">神力</span>
-          <span className="text-xs text-amber-400 font-semibold">
-            {divinePower} / {maxDivinePower}
-          </span>
+    <div className="panel flex h-full flex-col overflow-hidden">
+      <div className="panel-header">隊伍狀態</div>
+      <div className="border-b border-stone-800 px-4 py-4">
+        <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-[0.25em] text-stone-500">
+          <span>神力</span>
+          <span className="text-amber-100">{divinePower}/{maxDivinePower}</span>
         </div>
-        <div className="flex gap-1.5">
-          {powerDots.map((filled, i) => (
+        <div className="flex gap-2">
+          {Array.from({ length: maxDivinePower }, (_, index) => (
             <div
-              key={i}
-              className={`h-3 w-3 rounded-full border ${
-                filled
-                  ? 'bg-amber-400 border-amber-300'
-                  : 'bg-gray-800 border-gray-600'
-              }`}
+              key={index}
+              className={[
+                'h-3 flex-1 rounded-full border',
+                index < divinePower
+                  ? 'border-amber-300/60 bg-amber-300/80'
+                  : 'border-stone-700 bg-stone-900',
+              ].join(' ')}
             />
           ))}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-3">
-        {party.map((a) => (
-          <CharacterRow key={a.id} a={a} />
+      <div className="flex-1 space-y-3 overflow-y-auto p-3">
+        {party.map((member) => (
+          <div
+            key={member.id}
+            className={[
+              'rounded-2xl border bg-stone-950/70 p-3',
+              member.alive ? 'border-stone-800' : 'border-rose-500/30 opacity-60',
+            ].join(' ')}
+          >
+            <div className="mb-3 flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-stone-700 bg-stone-900 text-xl">
+                {characterClassIcon(member.class)}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-semibold text-stone-100">{member.name}</div>
+                <div className="text-xs text-stone-500">{classDisplayName(member.class)}</div>
+              </div>
+              <div className="text-right text-[11px] uppercase tracking-[0.22em] text-stone-500">
+                {member.alive ? '就緒' : '倒下'}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <StatBar label="體力" value={member.hp} max={member.maxHp} colorClass={hpColor(member.hp, member.maxHp)} />
+              <StatBar label="壓力" value={member.stress} max={100} colorClass={stressColor(member.stress)} />
+            </div>
+
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {member.traits.map((trait) => (
+                <span key={trait} className="trait-badge">
+                  {traitDisplayName(trait)}
+                </span>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     </div>

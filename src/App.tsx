@@ -1,7 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import type { OracleConfig, RunState } from './types';
 import { ADVENTURER_POOL } from './data/adventurers';
-import { EXPEDITION_NODES } from './data/expedition';
 import { parseOracle } from './game/oracleParser';
 import { createInitialRunState } from './game/expeditionManager';
 
@@ -10,10 +9,6 @@ import PartySelectionScreen from './screens/PartySelectionScreen';
 import OracleSetupScreen from './screens/OracleSetupScreen';
 import ExpeditionScreen from './screens/ExpeditionScreen';
 import ResultScreen from './screens/ResultScreen';
-
-// ─────────────────────────────────────────────────────────────────
-// Root application — manages top-level game phase and run state
-// ─────────────────────────────────────────────────────────────────
 
 type Phase = 'title' | 'party_selection' | 'oracle_setup' | 'expedition' | 'result';
 
@@ -26,10 +21,16 @@ function createBlankRunState(): RunState {
     oracleConfig: null,
     divinePower: 3,
     maxDivinePower: 3,
-    currentNodeIndex: 0,
-    nodes: EXPEDITION_NODES,
+    currentNodeId: 'entrance',
+    nodes: [],
+    visibleNodeIds: [],
+    resolvedNodeIds: [],
+    pathTaken: [],
     resolutions: [],
     relicRecovered: false,
+    bossCleared: false,
+    escaped: false,
+    totalLoot: 0,
     expeditionLog: [],
     interventionsUsed: [],
     activeBlessing: null,
@@ -44,20 +45,9 @@ export default function App() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [runState, setRunState] = useState<RunState>(createBlankRunState());
 
-  // ── Title → Party Selection ────────────────────────────────────
-
-  function handleStart() {
-    setPhase('party_selection');
-  }
-
-  // ── Party Selection → Oracle Setup ────────────────────────────
-
-  function handlePartyConfirm(ids: string[]) {
-    setSelectedIds(ids);
-    setPhase('oracle_setup');
-  }
-
-  // ── Oracle Setup → Expedition ──────────────────────────────────
+  const selectedParty = selectedIds
+    .map((id) => ADVENTURER_POOL.find((member) => member.id === id))
+    .filter(Boolean) as (typeof ADVENTURER_POOL)[number][];
 
   function handleOracleConfirm(config: OracleConfig) {
     const intent = parseOracle(config);
@@ -66,64 +56,43 @@ export default function App() {
     setPhase('expedition');
   }
 
-  // ── Expedition state updates ───────────────────────────────────
-
-  const handleStateChange = useCallback((next: RunState) => {
-    setRunState(next);
-  }, []);
-
-  // ── Expedition → Result ────────────────────────────────────────
-
-  function handleExpeditionComplete() {
-    setPhase('result');
+  if (phase === 'title') {
+    return <TitleScreen onStart={() => setPhase('party_selection')} />;
   }
 
-  // ── Result → Restart ──────────────────────────────────────────
-
-  function handleRestart() {
-    setSelectedIds([]);
-    setRunState(createBlankRunState());
-    setPhase('title');
+  if (phase === 'party_selection') {
+    return (
+      <PartySelectionScreen
+        onConfirm={(ids) => {
+          setSelectedIds(ids);
+          setPhase('oracle_setup');
+        }}
+      />
+    );
   }
 
-  // ── Derive party for oracle screen ────────────────────────────
-
-  const selectedParty = selectedIds
-    .map((id) => ADVENTURER_POOL.find((a) => a.id === id))
-    .filter(Boolean) as (typeof ADVENTURER_POOL)[number][];
-
-  // ─────────────────────────────────────────────────────────────
-  // Render
-  // ─────────────────────────────────────────────────────────────
-
-  switch (phase) {
-    case 'title':
-      return <TitleScreen onStart={handleStart} />;
-
-    case 'party_selection':
-      return <PartySelectionScreen onConfirm={handlePartyConfirm} />;
-
-    case 'oracle_setup':
-      return (
-        <OracleSetupScreen
-          party={selectedParty}
-          onConfirm={handleOracleConfirm}
-        />
-      );
-
-    case 'expedition':
-      return (
-        <ExpeditionScreen
-          state={runState}
-          onStateChange={handleStateChange}
-          onExpeditionComplete={handleExpeditionComplete}
-        />
-      );
-
-    case 'result':
-      return <ResultScreen state={runState} onRestart={handleRestart} />;
-
-    default:
-      return null;
+  if (phase === 'oracle_setup') {
+    return <OracleSetupScreen party={selectedParty} onConfirm={handleOracleConfirm} />;
   }
+
+  if (phase === 'expedition') {
+    return (
+      <ExpeditionScreen
+        state={runState}
+        onStateChange={setRunState}
+        onExpeditionComplete={() => setPhase('result')}
+      />
+    );
+  }
+
+  return (
+    <ResultScreen
+      state={runState}
+      onRestart={() => {
+        setSelectedIds([]);
+        setRunState(createBlankRunState());
+        setPhase('title');
+      }}
+    />
+  );
 }

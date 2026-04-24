@@ -9,7 +9,7 @@ import type {
   ParsedSignals,
   TraitName,
 } from '../types';
-import { traitDisplayName, classDisplayName } from '../utils/helpers';
+import { classDisplayName, traitDisplayName } from '../utils/helpers';
 
 const RANDOMNESS_RANGE = 0.05;
 
@@ -19,40 +19,43 @@ const CLASS_BIASES: Record<AdventurerClass, Record<string, number>> = {
     press_attack: 0.25,
     defensive_formation: 0.2,
     force_through: 0.15,
-    cross_carefully: 0.1,
-    investigate_treasure: -0.15,
+    cleanse_altar: 0.15,
+    rush_supply_cache: 0.15,
     withdraw: -0.2,
+    retreat_partial: -0.25,
   },
   Healer: {
     help_keeper: 0.3,
     carry_wounded: 0.35,
+    offer_prayer: 0.25,
     fight_through: -0.2,
     press_attack: -0.25,
-    safe_detour: 0.15,
-    withdraw: 0.1,
+    rush_supply_cache: -0.2,
   },
   Rogue: {
     investigate_treasure: 0.25,
     quick_scout: 0.2,
     interrogate_keeper: 0.2,
-    safe_detour: 0.05,
+    silent_pickoff: 0.25,
+    rush_supply_cache: 0.1,
     fight_through: -0.1,
-    force_through: -0.1,
   },
   Mage: {
     interrogate_keeper: 0.25,
     quick_scout: 0.15,
     conserve_and_flank: 0.2,
     defensive_formation: 0.15,
+    cleanse_altar: 0.2,
+    offer_prayer: 0.1,
     fight_through: -0.15,
-    force_through: -0.2,
   },
   Ranger: {
     safe_detour: 0.2,
     cross_carefully: 0.15,
     withdraw: 0.1,
+    bypass_watch: 0.25,
+    silent_pickoff: 0.15,
     defensive_formation: 0.1,
-    force_through: -0.1,
     press_attack: -0.05,
   },
 };
@@ -69,15 +72,10 @@ function computeTraitScore(
     if (bonus === 0) continue;
     score += bonus;
     const name = traitDisplayName(trait);
-    if (bonus >= 0.3) {
-      tags.push(`${name}強烈傾向此選擇。`);
-    } else if (bonus >= 0.15) {
-      tags.push(`${name}傾向此選擇。`);
-    } else if (bonus <= -0.3) {
-      tags.push(`${name}強烈抗拒此選擇。`);
-    } else if (bonus <= -0.15) {
-      tags.push(`${name}抗拒此選擇。`);
-    }
+    if (bonus >= 0.3) tags.push(`${name} 強烈傾向此選項。`);
+    else if (bonus >= 0.15) tags.push(`${name} 傾向此選項。`);
+    else if (bonus <= -0.3) tags.push(`${name} 強烈抗拒。`);
+    else if (bonus <= -0.15) tags.push(`${name} 不喜歡此選項。`);
   }
 
   return { score, tags };
@@ -89,27 +87,21 @@ function computeDivineAlignment(
   signals: ParsedSignals
 ): { score: number; tags: string[] } {
   const tags: string[] = [];
-
   let rawAlignment = 0;
+
   for (const [key, weight] of Object.entries(option.signalAlignment)) {
     const intentValue = signals[key as keyof ParsedSignals] ?? 0;
     rawAlignment += intentValue * (weight as number);
   }
 
   const faithMultiplier = character.faith / 100;
-  const devoutMult = character.traits.includes('Devout') ? 1.3 : 1.0;
-  const skepticMult = character.traits.includes('Skeptical') ? 0.5 : 1.0;
-  const finalScore = rawAlignment * faithMultiplier * devoutMult * skepticMult * 0.7;
+  const devoutMultiplier = character.traits.includes('Devout') ? 1.3 : 1;
+  const skepticalMultiplier = character.traits.includes('Skeptical') ? 0.5 : 1;
+  const finalScore = rawAlignment * faithMultiplier * devoutMultiplier * skepticalMultiplier * 0.7;
 
-  if (rawAlignment > 0.3 && finalScore > 0.1) {
-    tags.push('此選擇符合神意指引。');
-  }
-  if (character.traits.includes('Devout') && rawAlignment > 0.2) {
-    tags.push('虔誠的信仰放大了神聖訊號。');
-  }
-  if (character.traits.includes('Skeptical')) {
-    tags.push('懷疑主義削弱了神意的牽引力。');
-  }
+  if (rawAlignment > 0.3 && finalScore > 0.1) tags.push('神諭契合。');
+  if (character.traits.includes('Devout') && rawAlignment > 0.2) tags.push('信仰放大神諭。');
+  if (character.traits.includes('Skeptical')) tags.push('多疑削弱信號。');
 
   return { score: finalScore, tags };
 }
@@ -126,31 +118,31 @@ function computeStateModifiers(
 
   if (option.riskLevel === 'high' && hpRatio < 0.4) {
     score -= 0.35;
-    tags.push('體力極低，令人不願再承受更多傷害。');
+    tags.push('體力過低拒絕高風險。');
   } else if (option.riskLevel === 'high' && hpRatio < 0.6) {
     score -= 0.15;
-    tags.push('體力低於半數，對危險的渴望有所削減。');
+    tags.push('受傷令其更不願冒險。');
   }
 
   if (character.traits.includes('Fragile') && option.riskLevel === 'high') {
     score -= 0.2;
-    tags.push('脆弱的體質使高風險選項更難以承受。');
+    tags.push('脆弱體質迴避重傷。');
   }
 
   if (stressRatio > 0.7) {
     if (option.riskLevel === 'high') {
       score -= 0.2;
-      tags.push('極高的壓力使進一步的危險令人難以承受。');
+      tags.push('壓力懲罰冒險。');
     }
     if (option.riskLevel === 'low') {
       score += 0.15;
-      tags.push('極高的壓力使安全路線更具吸引力。');
+      tags.push('壓力驅使其尋求安全。');
     }
   }
 
   if (character.traits.includes('Calm') && stressRatio > 0.5) {
     score += 0.1;
-    tags.push('冷靜的性格抵擋了恐慌的侵蝕。');
+    tags.push('冷靜穩住陣腳。');
   }
 
   return { score, tags };
@@ -160,18 +152,18 @@ function computeClassBias(
   character: Adventurer,
   option: EventOption
 ): { score: number; tags: string[] } {
+  const bias = CLASS_BIASES[character.class]?.[option.id] ?? 0;
   const tags: string[] = [];
-  const biases = CLASS_BIASES[character.class] ?? {};
-  const bias = biases[option.id] ?? 0;
+
   if (Math.abs(bias) >= 0.15) {
-    const cls = classDisplayName(character.class);
-    if (bias > 0) {
-      tags.push(`${cls}的訓練本能地傾向這種做法。`);
-    } else {
-      tags.push(`${cls}的訓練本能地抗拒這種做法。`);
-    }
+    tags.push(`${classDisplayName(character.class)} 訓練使然。`);
   }
+
   return { score: bias, tags };
+}
+
+interface ScoreOptions {
+  randomnessRange?: number;
 }
 
 interface OptionScore {
@@ -184,23 +176,24 @@ function scoreOption(
   character: Adventurer,
   option: EventOption,
   intent: DivinIntent,
-  interventionBoost: number
+  interventionBoost: number,
+  options?: ScoreOptions
 ): OptionScore {
   const trait = computeTraitScore(character.traits, option);
   const divine = computeDivineAlignment(character, option, intent.parsedSignals);
   const state = computeStateModifiers(character, option);
   const classBias = computeClassBias(character, option);
+  const randomness = (Math.random() - 0.5) * (options?.randomnessRange ?? RANDOMNESS_RANGE) * 2;
 
-  const randomness = (Math.random() - 0.5) * RANDOMNESS_RANGE * 2;
-  const allTags: string[] = [];
+  const tags = [
+    ...trait.tags,
+    ...divine.tags,
+    ...state.tags,
+    ...classBias.tags,
+    ...(interventionBoost > 0.1 ? ['神聖推動偏向此選項。'] : []),
+  ];
 
-  if (trait.tags.length) allTags.push(...trait.tags);
-  if (divine.tags.length) allTags.push(...divine.tags);
-  if (state.tags.length) allTags.push(...state.tags);
-  if (classBias.tags.length) allTags.push(...classBias.tags);
-  if (interventionBoost > 0.1) allTags.push('神聖神諭引導著向此選擇靠攏。');
-
-  const totalScore =
+  const score =
     option.baseWeight +
     trait.score +
     divine.score +
@@ -209,17 +202,19 @@ function scoreOption(
     interventionBoost +
     randomness;
 
-  const breakdown: DecisionBreakdown = {
-    baseWeight: option.baseWeight,
-    traitModifiers: trait.score,
-    divineAlignment: divine.score,
-    stateModifiers: state.score,
-    classBias: classBias.score,
-    interventionModifier: interventionBoost,
-    randomness,
+  return {
+    score,
+    tags,
+    breakdown: {
+      baseWeight: option.baseWeight,
+      traitModifiers: trait.score,
+      divineAlignment: divine.score,
+      stateModifiers: state.score,
+      classBias: classBias.score,
+      interventionModifier: interventionBoost,
+      randomness,
+    },
   };
-
-  return { score: totalScore, tags: allTags, breakdown };
 }
 
 export interface PartyDecisionResult {
@@ -231,14 +226,15 @@ export interface PartyDecisionResult {
   divergenceNote?: string;
 }
 
-export function resolvePartyDecision(
+function resolveWithOptions(
   event: GameEvent,
   party: Adventurer[],
   intent: DivinIntent,
   activeOmenOptionId: string | null,
-  activeBlessingBoost: boolean
+  activeBlessingBoost: boolean,
+  options?: ScoreOptions
 ): PartyDecisionResult {
-  const living = party.filter((c) => c.alive);
+  const living = party.filter((character) => character.alive);
   const characterDecisions: CharacterDecision[] = [];
 
   for (const character of living) {
@@ -248,7 +244,7 @@ export function resolvePartyDecision(
 
     for (const option of event.options) {
       const interventionBoost = activeOmenOptionId === option.id ? 0.5 : 0;
-      const result = scoreOption(character, option, intent, interventionBoost);
+      const result = scoreOption(character, option, intent, interventionBoost, options);
       scores[option.id] = result.score;
       tags[option.id] = result.tags;
       breakdown[option.id] = result.breakdown;
@@ -269,13 +265,14 @@ export function resolvePartyDecision(
     });
   }
 
-  const aggregateScores: Record<string, number> = {};
-  for (const option of event.options) {
-    aggregateScores[option.id] = 0;
-  }
+  const aggregateScores: Record<string, number> = Object.fromEntries(
+    event.options.map((option) => [option.id, 0])
+  );
 
   for (const decision of characterDecisions) {
-    const character = living.find((c) => c.id === decision.characterId)!;
+    const character = living.find((member) => member.id === decision.characterId);
+    if (!character) continue;
+
     const effectiveLoyalty = Math.min(100, character.loyalty + (activeBlessingBoost ? 20 : 0));
     const loyaltyWeight = effectiveLoyalty / 100;
 
@@ -284,9 +281,8 @@ export function resolvePartyDecision(
     }
   }
 
-  const partySize = living.length;
-  for (const key of Object.keys(aggregateScores)) {
-    aggregateScores[key] /= partySize;
+  for (const optionId of Object.keys(aggregateScores)) {
+    aggregateScores[optionId] /= Math.max(1, living.length);
   }
 
   const winningOptionId = Object.entries(aggregateScores).reduce(
@@ -298,8 +294,8 @@ export function resolvePartyDecision(
   for (const option of event.options) {
     let divineScore = 0;
     for (const [key, weight] of Object.entries(option.signalAlignment)) {
-      const sv = intent.parsedSignals[key as keyof ParsedSignals] ?? 0;
-      divineScore += sv * (weight as number);
+      const signalValue = intent.parsedSignals[key as keyof ParsedSignals] ?? 0;
+      divineScore += signalValue * (weight as number);
     }
     divineScores[option.id] = divineScore;
   }
@@ -310,13 +306,8 @@ export function resolvePartyDecision(
   );
 
   const followedDivineIntent = winningOptionId === divinePreferredOptionId;
-
-  let divergenceNote: string | undefined;
-  if (!followedDivineIntent) {
-    const winner = event.options.find((o) => o.id === winningOptionId);
-    const divine = event.options.find((o) => o.id === divinePreferredOptionId);
-    divergenceNote = `隊伍選擇了「${winner?.label}」，違背了您欲達成「${divine?.label}」的意圖。`;
-  }
+  const winner = event.options.find((option) => option.id === winningOptionId);
+  const divine = event.options.find((option) => option.id === divinePreferredOptionId);
 
   return {
     characterDecisions,
@@ -324,10 +315,34 @@ export function resolvePartyDecision(
     winningOptionId,
     divinePreferredOptionId,
     followedDivineIntent,
-    divergenceNote,
+    divergenceNote: followedDivineIntent
+      ? undefined
+      : `隊伍選了${winner?.label}而非${divine?.label}。`,
   };
 }
 
-export function topTags(tags: string[], max = 3): string[] {
+export function resolvePartyDecision(
+  event: GameEvent,
+  party: Adventurer[],
+  intent: DivinIntent,
+  activeOmenOptionId: string | null,
+  activeBlessingBoost: boolean
+): PartyDecisionResult {
+  return resolveWithOptions(event, party, intent, activeOmenOptionId, activeBlessingBoost);
+}
+
+export function previewPartyDecision(
+  event: GameEvent,
+  party: Adventurer[],
+  intent: DivinIntent,
+  activeOmenOptionId: string | null,
+  activeBlessingBoost: boolean
+): PartyDecisionResult {
+  return resolveWithOptions(event, party, intent, activeOmenOptionId, activeBlessingBoost, {
+    randomnessRange: 0,
+  });
+}
+
+export function topTags(tags: string[], max = 2): string[] {
   return tags.slice(0, max);
 }

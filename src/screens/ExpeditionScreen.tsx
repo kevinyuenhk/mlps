@@ -1,17 +1,18 @@
-import { useState, useCallback } from 'react';
-import type { InterventionType, RunState } from '../types';
+import { useMemo, useState } from 'react';
+import type { EventOption, InterventionType, RunState } from '../types';
 import { getEventById } from '../data/events';
+import { previewPartyDecision } from '../game/decisionEngine';
 import {
-  resolveCurrentEvent,
   applyIntervention,
-  advanceNode,
+  moveToNode,
+  resolveCurrentEvent,
 } from '../game/expeditionManager';
 import PartyPanel from '../components/PartyPanel';
 import NodeMap from '../components/NodeMap';
-import EventModal from '../components/EventModal';
-import ExpeditionLog from '../components/ExpeditionLog';
 import InterventionPanel from '../components/InterventionPanel';
 import OracleSummary from '../components/OracleSummary';
+import ExpeditionLog from '../components/ExpeditionLog';
+import { riskColor, roomTypeIcon, roomTypeLabel } from '../utils/helpers';
 
 interface Props {
   state: RunState;
@@ -19,227 +20,299 @@ interface Props {
   onExpeditionComplete: () => void;
 }
 
-type MobileTab = 'party' | 'expedition' | 'log';
+function OptionCard({
+  option,
+  selectedForOmen,
+  omenMode,
+  votes,
+  onSelectOmen,
+}: {
+  option: EventOption;
+  selectedForOmen: boolean;
+  omenMode: boolean;
+  votes: number;
+  onSelectOmen: (optionId: string) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => omenMode && onSelectOmen(option.id)}
+      className={[
+        'w-full rounded-2xl border px-4 py-3 text-left transition',
+        selectedForOmen ? 'border-violet-300/60 bg-violet-300/10' : 'border-stone-800 bg-stone-950/70',
+        omenMode ? 'hover:border-violet-300/60' : '',
+      ].join(' ')}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-lg">{option.intentIcon}</span>
+            <span className="text-sm font-semibold text-stone-100">{option.label}</span>
+          </div>
+          <div className="mt-1 text-xs text-stone-500">{option.description}</div>
+        </div>
+        <div className="text-right">
+          <div className={`inline-flex rounded-full border px-2 py-1 text-[11px] uppercase tracking-[0.2em] ${riskColor(option.riskLevel)}`}>
+            {option.riskLevel}
+          </div>
+          <div className="mt-2 text-xs text-stone-500">{votes} 票</div>
+        </div>
+      </div>
+    </button>
+  );
+}
 
-export default function ExpeditionScreen({
-  state,
-  onStateChange,
-  onExpeditionComplete,
-}: Props) {
+export default function ExpeditionScreen({ state, onStateChange, onExpeditionComplete }: Props) {
   const [selectingOmen, setSelectingOmen] = useState(false);
-  const [eventResolved, setEventResolved] = useState(false);
-  const [mobileTab, setMobileTab] = useState<MobileTab>('expedition');
 
-  const currentNode = state.nodes[state.currentNodeIndex];
-  const currentEvent = currentNode?.eventId ? getEventById(currentNode.eventId) : null;
+  const currentNode = state.nodes.find((node) => node.id === state.currentNodeId);
+  const currentEvent = currentNode?.eventId ? getEventById(currentNode.eventId) : undefined;
+  const currentResolution = state.resolutions.find((resolution) => resolution.nodeId === state.currentNodeId);
+  const currentResolved = Boolean(currentResolution);
+  const routeChoices =
+    currentNode?.nextNodeIds
+      .map((nodeId) => state.nodes.find((node) => node.id === nodeId))
+      .filter((node): node is NonNullable<typeof node> => Boolean(node)) ?? [];
 
-  const currentResolution = eventResolved
-    ? state.resolutions.find((r) => r.eventId === currentNode?.eventId) ?? null
-    : null;
+  const preview = useMemo(() => {
+    if (!currentEvent || !state.divinIntent || currentResolved) return null;
+    return previewPartyDecision(
+      currentEvent,
+      state.party,
+      state.divinIntent,
+      state.activeOmenOptionId,
+      state.activeBlessingBoost
+    );
+  }, [
+    currentEvent,
+    currentResolved,
+    state.activeBlessingBoost,
+    state.activeOmenOptionId,
+    state.divinIntent,
+    state.party,
+  ]);
 
   function handleIntervene(type: InterventionType, optionId?: string) {
     if (type === 'omen' && !optionId) {
       setSelectingOmen(true);
       return;
     }
-    const next = applyIntervention(state, type, optionId);
-    onStateChange(next);
-    if (type === 'omen') setSelectingOmen(false);
+
+    onStateChange(applyIntervention(state, type, optionId));
+    setSelectingOmen(false);
   }
 
-  function handleOmenSelect(optionId: string) {
-    handleIntervene('omen', optionId);
-  }
-
-  const handleResolve = useCallback(() => {
-    if (!currentEvent) return;
+  function handleResolve() {
     const next = resolveCurrentEvent(state);
     onStateChange(next);
-    setEventResolved(true);
     setSelectingOmen(false);
-  }, [state, currentEvent, onStateChange]);
-
-  function handleAdvance() {
-    setEventResolved(false);
-    setSelectingOmen(false);
-
-    const next = advanceNode(state);
-    onStateChange(next);
-
-    if (next.expeditionComplete) {
-      onExpeditionComplete();
-    }
   }
 
-  const isEntranceNode = currentNode?.id === 'entrance';
+  function handleMove(nextNodeId: string) {
+    const next = moveToNode(state, nextNodeId);
+    onStateChange(next);
+  }
+
+  function handleViewResults() {
+    onExpeditionComplete();
+  }
+
+  const voteCountByOption = Object.fromEntries(
+    (currentEvent?.options ?? []).map((option) => [
+      option.id,
+      preview?.characterDecisions.filter((decision) => decision.preferredOptionId === option.id).length ?? 0,
+    ])
+  );
 
   return (
-    <div className="h-[100dvh] flex flex-col overflow-hidden bg-gray-950">
-      {/* Top bar: node map */}
-      <div className="border-b border-gray-700 bg-gray-900 px-3 md:px-4 py-2 shrink-0">
-        <div className="flex items-center gap-2 md:gap-4">
-          <div className="hidden sm:flex items-center gap-2 shrink-0">
-            <div className="text-xs text-gray-500 uppercase tracking-wide whitespace-nowrap">
-              荒廢墓地
-            </div>
-            {state.relicRecovered && (
-              <span className="text-xs px-2 py-0.5 rounded bg-amber-900 text-amber-300 border border-amber-700">
-                ✓ 神器
-              </span>
+    <div className="min-h-screen bg-[linear-gradient(180deg,#0b0e13_0%,#0d1117_100%)] p-3 sm:p-4">
+      <div className="mx-auto flex min-h-[calc(100vh-1.5rem)] max-w-[1700px] flex-col gap-3">
+        <div className="grid flex-1 gap-3 xl:grid-cols-[320px_minmax(0,1fr)_420px]">
+          <div className="min-h-0">
+            <PartyPanel
+              party={state.party}
+              divinePower={state.divinePower}
+              maxDivinePower={state.maxDivinePower}
+            />
+          </div>
+
+          <div className="flex min-h-0 flex-col gap-3">
+            <NodeMap
+              nodes={state.nodes}
+              currentNodeId={state.currentNodeId}
+              visibleNodeIds={state.visibleNodeIds}
+              resolvedNodeIds={state.resolvedNodeIds}
+              pathTaken={state.pathTaken}
+            />
+
+            {state.divinIntent && (
+              <div className="panel p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.3em] text-stone-500">神諭</div>
+                    <div className="text-sm text-stone-300">信號讀數</div>
+                  </div>
+                  <div className="rounded-full border border-stone-700 px-3 py-1 text-xs text-stone-300">
+                    {state.totalLoot} 戰利品
+                  </div>
+                </div>
+                <OracleSummary intent={state.divinIntent} compact />
+              </div>
             )}
           </div>
-          <div className="flex-1 overflow-x-auto">
-            <NodeMap nodes={state.nodes} currentIndex={state.currentNodeIndex} />
-          </div>
-        </div>
-      </div>
 
-      {/* Main body */}
-      <div className="flex-1 flex overflow-hidden min-h-0">
+          <div className="min-h-0">
+            <div className="panel flex h-full flex-col overflow-hidden">
+              <div className="panel-header">遭遇戰</div>
+              <div className="flex-1 space-y-4 overflow-y-auto p-4">
+                {currentNode && (
+                  <div className="rounded-[28px] border border-stone-800 bg-stone-950/70 p-4">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-stone-700 bg-stone-900 text-2xl">
+                          {roomTypeIcon(currentNode.type)}
+                        </div>
+                        <div>
+                          <div className="text-xs uppercase tracking-[0.3em] text-stone-500">
+                            {roomTypeLabel(currentNode.type)}
+                          </div>
+                          <div className="text-xl font-semibold text-stone-100">
+                            {currentEvent?.title ?? currentNode.name}
+                          </div>
+                        </div>
+                      </div>
+                      {currentNode.type === 'boss' && (
+                        <div className="rounded-full border border-amber-300/50 bg-amber-300/10 px-3 py-1 text-xs uppercase tracking-[0.25em] text-amber-100">
+                          首領
+                        </div>
+                      )}
+                    </div>
 
-        {/* LEFT: Party panel */}
-        <div
-          className={[
-            mobileTab === 'party' ? 'flex' : 'hidden',
-            'md:flex flex-col w-full md:w-60 shrink-0 md:border-r border-gray-700 overflow-hidden',
-          ].join(' ')}
-        >
-          <PartyPanel
-            party={state.party}
-            divinePower={state.divinePower}
-            maxDivinePower={state.maxDivinePower}
-          />
-        </div>
+                    <p className="text-sm text-stone-400">
+                      {currentEvent?.description ?? currentNode.description}
+                    </p>
+                  </div>
+                )}
 
-        {/* CENTER: Event + node info */}
-        <div
-          className={[
-            mobileTab === 'expedition' ? 'flex' : 'hidden',
-            'md:flex flex-1 flex-col overflow-hidden min-w-0',
-          ].join(' ')}
-        >
-          {/* Node description bar */}
-          <div className="border-b border-gray-700 px-4 py-2.5 bg-gray-900/50 shrink-0">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">{currentNode?.icon}</span>
-              <div>
-                <div className="text-sm font-semibold text-gray-200">{currentNode?.name}</div>
-                <div className="text-xs text-gray-500 leading-tight">{currentNode?.description}</div>
+                {currentNode?.type === 'entrance' && !currentEvent && (
+                  <div className="space-y-4">
+                    <div className="rounded-[28px] border border-stone-800 bg-stone-950/70 p-4">
+                      <div className="text-sm text-stone-300">
+                        隊伍集合在門口。第一個房間可見，更深處的分支仍被迷霧遮蔽。
+                      </div>
+                    </div>
+                    <button className="btn-primary w-full py-3" onClick={() => handleMove('vanguard')}>
+                      深入
+                    </button>
+                  </div>
+                )}
+
+                {currentEvent && !currentResolved && (
+                  <>
+                    {preview && (
+                      <div className="rounded-[28px] border border-stone-800 bg-stone-950/70 p-4">
+                        <div className="mb-3 text-[11px] uppercase tracking-[0.25em] text-stone-500">
+                          隊伍意圖
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {preview.characterDecisions.map((decision) => {
+                            const preferredOption = currentEvent.options.find(
+                              (option) => option.id === decision.preferredOptionId
+                            );
+                            return (
+                              <div
+                                key={decision.characterId}
+                                className="rounded-full border border-stone-700 bg-stone-900 px-3 py-2 text-xs text-stone-300"
+                              >
+                                {decision.characterName} → {preferredOption?.intentIcon} {preferredOption?.intentLabel}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="space-y-3">
+                      {currentEvent.options.map((option) => (
+                        <OptionCard
+                          key={option.id}
+                          option={option}
+                          selectedForOmen={state.activeOmenOptionId === option.id}
+                          omenMode={selectingOmen}
+                          votes={voteCountByOption[option.id] ?? 0}
+                          onSelectOmen={(optionId) => handleIntervene('omen', optionId)}
+                        />
+                      ))}
+                    </div>
+
+                    <InterventionPanel state={state} currentEvent={currentEvent} onIntervene={handleIntervene} />
+
+                    {selectingOmen && (
+                      <div className="rounded-2xl border border-violet-300/30 bg-violet-300/10 px-3 py-3 text-sm text-violet-100">
+                        選擇一張行動卡來鎖定神諭。
+                      </div>
+                    )}
+
+                    <button className="btn-primary w-full py-3" onClick={handleResolve}>
+                      決定
+                    </button>
+                  </>
+                )}
+
+                {currentEvent && currentResolution && (
+                  <div className="space-y-4">
+                    <div className="rounded-[28px] border border-stone-800 bg-stone-950/70 p-4">
+                      <div className="mb-2 flex items-center justify-between">
+                        <div className="text-sm font-semibold text-stone-100">{currentResolution.chosenOptionLabel}</div>
+                        <div className="text-xs text-stone-500">
+                          {currentResolution.followedDivineIntent ? '契合' : '偏離'}
+                        </div>
+                      </div>
+                      <div className="text-sm text-stone-400">{currentResolution.outcomeText}</div>
+                      <div className="mt-3 flex flex-wrap gap-2 text-xs text-stone-500">
+                        <span>體力 {currentResolution.hpChangePerMember >= 0 ? '+' : ''}{currentResolution.hpChangePerMember}</span>
+                        <span>壓力 {currentResolution.stressChangePerMember >= 0 ? '+' : ''}{currentResolution.stressChangePerMember}</span>
+                        <span>戰利品 +{currentResolution.lootDelta}</span>
+                      </div>
+                    </div>
+
+                    {routeChoices.length > 0 && !state.expeditionComplete && (
+                      <div className="space-y-2">
+                        <div className="text-[11px] uppercase tracking-[0.25em] text-stone-500">選擇路線</div>
+                        <div className="grid gap-2">
+                          {routeChoices.map((route) => (
+                            <button
+                              key={route.id}
+                              type="button"
+                              onClick={() => handleMove(route.id)}
+                              className="rounded-2xl border border-stone-800 bg-stone-950/70 px-4 py-3 text-left transition hover:border-amber-300/50"
+                            >
+                              <div className="flex items-center gap-3">
+                                <span className="text-lg">{route.icon}</span>
+                                <div>
+                                  <div className="text-sm font-semibold text-stone-100">{route.name}</div>
+                                  <div className="text-xs text-stone-500">{route.description}</div>
+                                </div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {state.expeditionComplete && (
+                      <button className="btn-primary w-full py-3" onClick={handleViewResults}>
+                        查看報告
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
-
-          {/* Scrollable event area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-
-            {/* ENTRANCE: no event */}
-            {isEntranceNode && (
-              <div className="panel p-6 text-center animate-fade-in">
-                <div className="text-5xl mb-4">🚪</div>
-                <h2 className="text-xl font-bold text-gray-100 mb-2">墓門待啟</h2>
-                <p className="text-gray-400 text-sm leading-relaxed mb-4 max-w-md mx-auto">
-                  你的隊伍站在荒廢墓地前。霧氣穿過鐵門繚繞而上。
-                  神聖神器就在深處某處等待。
-                </p>
-                <p className="text-xs text-gray-600 mb-5">
-                  你有 {state.divinePower} 點神力。可在事件解決前使用干預。
-                </p>
-                <button onClick={handleAdvance} className="btn-primary">
-                  進入墓地
-                </button>
-              </div>
-            )}
-
-            {/* EVENT: pending */}
-            {!isEntranceNode && currentEvent && !eventResolved && (
-              <EventModal
-                event={currentEvent}
-                state={state}
-                resolution={null}
-                onResolve={handleResolve}
-                onOmenSelect={handleOmenSelect}
-                selectingOmen={selectingOmen}
-              />
-            )}
-
-            {/* EVENT: resolved */}
-            {!isEntranceNode && currentEvent && eventResolved && currentResolution && (
-              <>
-                <EventModal
-                  event={currentEvent}
-                  state={state}
-                  resolution={currentResolution}
-                  onResolve={handleResolve}
-                  onOmenSelect={handleOmenSelect}
-                  selectingOmen={false}
-                />
-                <button onClick={handleAdvance} className="btn-primary w-full">
-                  {state.currentNodeIndex >= state.nodes.length - 1
-                    ? '查看最終報告'
-                    : '繼續遠征 →'}
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* Intervention bar */}
-          {currentEvent && !eventResolved && (
-            <div className="border-t border-gray-700 px-3 py-3 bg-gray-900/50 shrink-0">
-              <div className="text-xs text-gray-600 text-center mb-2 uppercase tracking-wide">
-                神聖干預
-              </div>
-              <InterventionPanel
-                state={state}
-                currentEvent={currentEvent}
-                onIntervene={handleIntervene}
-                eventResolved={eventResolved}
-              />
-            </div>
-          )}
         </div>
 
-        {/* RIGHT: Log + Oracle */}
-        <div
-          className={[
-            mobileTab === 'log' ? 'flex' : 'hidden',
-            'md:flex flex-col w-full md:w-72 shrink-0 md:border-l border-gray-700 overflow-hidden',
-          ].join(' ')}
-        >
-          <div className="flex-1 overflow-hidden">
-            <ExpeditionLog entries={state.expeditionLog} />
-          </div>
-          {state.divinIntent && (
-            <div className="border-t border-gray-700 p-3 shrink-0 max-h-64 overflow-y-auto">
-              <div className="text-xs uppercase tracking-wide text-gray-600 mb-2">你的意圖</div>
-              <OracleSummary intent={state.divinIntent} compact />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Mobile bottom tab bar */}
-      <div className="md:hidden flex border-t border-gray-700 bg-gray-900 shrink-0">
-        {(
-          [
-            { id: 'party', icon: '👥', label: '隊伍' },
-            { id: 'expedition', icon: '⚔️', label: '探險' },
-            { id: 'log', icon: '📜', label: '日誌' },
-          ] as { id: MobileTab; icon: string; label: string }[]
-        ).map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setMobileTab(tab.id)}
-            className={[
-              'flex-1 py-2.5 flex flex-col items-center gap-0.5 text-xs transition-colors',
-              mobileTab === tab.id
-                ? 'text-amber-400 bg-gray-800'
-                : 'text-gray-500 hover:text-gray-400',
-            ].join(' ')}
-          >
-            <span className="text-base">{tab.icon}</span>
-            <span>{tab.label}</span>
-          </button>
-        ))}
+        <ExpeditionLog entries={state.expeditionLog} />
       </div>
     </div>
   );

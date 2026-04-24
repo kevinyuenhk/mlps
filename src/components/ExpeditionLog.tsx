@@ -5,35 +5,31 @@ interface Props {
   entries: LogEntry[];
 }
 
-const TYPE_STYLES: Record<LogEntry['type'], string> = {
-  arrival: 'text-gray-400',
-  event: 'text-amber-300 font-medium',
-  decision: 'text-gray-300',
-  outcome: 'text-gray-400 italic',
-  intervention: 'text-violet-400',
-  info: 'text-gray-500',
+const STYLES: Record<LogEntry['type'], string> = {
+  arrival: 'text-stone-300',
+  decision: 'text-amber-100',
+  outcome: 'text-stone-400',
+  intervention: 'text-violet-200',
+  system: 'text-stone-500',
 };
 
 export default function ExpeditionLog({ entries }: Props) {
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [entries.length]);
 
   return (
-    <div className="panel flex flex-col h-full overflow-hidden">
-      <div className="panel-header">遠征日誌</div>
-      <div className="flex-1 overflow-y-auto p-3 space-y-1.5 text-xs leading-relaxed">
+    <div className="panel overflow-hidden">
+      <div className="panel-header">戰鬥日誌</div>
+      <div className="max-h-36 space-y-2 overflow-y-auto px-4 py-3 text-sm">
         {entries.map((entry) => (
-          <div
-            key={entry.id}
-            className={`${TYPE_STYLES[entry.type]} animate-fade-in`}
-          >
+          <div key={entry.id} className={`animate-fade-in ${STYLES[entry.type]}`}>
             {entry.text}
           </div>
         ))}
-        <div ref={bottomRef} />
+        <div ref={endRef} />
       </div>
     </div>
   );
