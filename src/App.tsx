@@ -1,98 +1,83 @@
 import { useState } from 'react';
-import type { OracleConfig, RunState } from './types';
-import { ADVENTURER_POOL } from './data/adventurers';
+import type { Adventurer, OracleConfig } from './types';
 import { parseOracle } from './game/oracleParser';
-import { createInitialRunState } from './game/expeditionManager';
+import { createBlankRunState, createInitialRunState } from './game/expeditionManager';
 
 import TitleScreen from './screens/TitleScreen';
 import PartySelectionScreen from './screens/PartySelectionScreen';
 import OracleSetupScreen from './screens/OracleSetupScreen';
 import ExpeditionScreen from './screens/ExpeditionScreen';
+import BattleScreen from './screens/BattleScreen';
+import PostBattleScreen from './screens/PostBattleScreen';
 import ResultScreen from './screens/ResultScreen';
 
-type Phase = 'title' | 'party_selection' | 'oracle_setup' | 'expedition' | 'result';
-
-function createBlankRunState(): RunState {
-  return {
-    phase: 'title',
-    selectedAdventurerIds: [],
-    party: [],
-    divinIntent: null,
-    oracleConfig: null,
-    divinePower: 3,
-    maxDivinePower: 3,
-    currentNodeId: 'entrance',
-    nodes: [],
-    visibleNodeIds: [],
-    resolvedNodeIds: [],
-    pathTaken: [],
-    resolutions: [],
-    relicRecovered: false,
-    bossCleared: false,
-    escaped: false,
-    totalLoot: 0,
-    expeditionLog: [],
-    interventionsUsed: [],
-    activeBlessing: null,
-    expeditionComplete: false,
-    activeOmenOptionId: null,
-    activeBlessingBoost: false,
-  };
-}
-
 export default function App() {
-  const [phase, setPhase] = useState<Phase>('title');
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [runState, setRunState] = useState<RunState>(createBlankRunState());
+  const [runState, setRunState] = useState(createBlankRunState());
 
-  const selectedParty = selectedIds
-    .map((id) => ADVENTURER_POOL.find((member) => member.id === id))
-    .filter(Boolean) as (typeof ADVENTURER_POOL)[number][];
+  const selectedParty = runState.selectedAdventurerIds
+    .map((id) => runState.party.find((member) => member.id === id))
+    .filter((member): member is Adventurer => Boolean(member));
 
   function handleOracleConfirm(config: OracleConfig) {
     const intent = parseOracle(config);
-    const initialState = createInitialRunState(selectedIds, intent, config.startingBlessing);
+    const initialState = createInitialRunState(
+      runState.selectedAdventurerIds,
+      intent,
+      config.startingBlessing
+    );
     setRunState({ ...initialState, oracleConfig: config });
-    setPhase('expedition');
   }
 
-  if (phase === 'title') {
-    return <TitleScreen onStart={() => setPhase('party_selection')} />;
+  if (runState.phase === 'title') {
+    return (
+      <TitleScreen
+          onStart={() => setRunState((state) => ({ ...state, phase: 'party_select' }))}
+        />
+    );
   }
 
-  if (phase === 'party_selection') {
+  if (runState.phase === 'party_select') {
     return (
       <PartySelectionScreen
-        onConfirm={(ids) => {
-          setSelectedIds(ids);
-          setPhase('oracle_setup');
+        onBack={() => setRunState(createBlankRunState())}
+        onConfirm={(party) => {
+          setRunState((state) => ({
+            ...state,
+            phase: 'oracle_setup',
+            selectedAdventurerIds: party.map((member) => member.id),
+            party,
+          }));
         }}
       />
     );
   }
 
-  if (phase === 'oracle_setup') {
-    return <OracleSetupScreen party={selectedParty} onConfirm={handleOracleConfirm} />;
-  }
-
-  if (phase === 'expedition') {
+  if (runState.phase === 'oracle_setup') {
     return (
-      <ExpeditionScreen
-        state={runState}
-        onStateChange={setRunState}
-        onExpeditionComplete={() => setPhase('result')}
+      <OracleSetupScreen
+        party={selectedParty}
+        onBack={() => setRunState((state) => ({ ...state, phase: 'party_select' }))}
+        onConfirm={(config) => handleOracleConfirm(config)}
       />
     );
+  }
+
+  if (runState.phase === 'exploration') {
+    return <ExpeditionScreen state={runState} onStateChange={setRunState} />;
+  }
+
+  if (runState.phase === 'battle') {
+    return <BattleScreen state={runState} onStateChange={setRunState} />;
+  }
+
+  if (runState.phase === 'post_battle') {
+    return <PostBattleScreen state={runState} onStateChange={setRunState} />;
   }
 
   return (
     <ResultScreen
       state={runState}
-      onRestart={() => {
-        setSelectedIds([]);
-        setRunState(createBlankRunState());
-        setPhase('title');
-      }}
+      onRestart={() => setRunState(createBlankRunState())}
     />
   );
 }

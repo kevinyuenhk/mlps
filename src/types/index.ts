@@ -76,6 +76,7 @@ export interface DivinIntent {
 
 export type RoomType =
   | 'entrance'
+  | 'room'
   | 'combat'
   | 'hazard'
   | 'choice'
@@ -120,6 +121,21 @@ export interface GameEvent {
   options: EventOption[];
 }
 
+export type RouteTag =
+  | 'mission'
+  | 'safe'
+  | 'danger'
+  | 'loot'
+  | 'mercy'
+  | 'speed'
+  | 'knowledge'
+  | 'boss';
+
+export interface Vec2 {
+  x: number;
+  y: number;
+}
+
 export interface DungeonNode {
   id: string;
   name: string;
@@ -130,10 +146,174 @@ export interface DungeonNode {
   depth: number;
   x: number;
   y: number;
+  width: number;
+  height: number;
+  biome?: string;
+  connections: string[];
   nextNodeIds: string[];
+  routeTags: RouteTag[];
+  encounterChance: number;
+  discovered: boolean;
+  cleared: boolean;
 }
 
 export type ExpeditionNode = DungeonNode;
+
+export interface DungeonCorridor {
+  id: string;
+  from: string;
+  to: string;
+  path: Vec2[];
+  length: number;
+}
+
+export interface DungeonMap {
+  width: number;
+  height: number;
+  rooms: DungeonNode[];
+  corridors: DungeonCorridor[];
+  spawnPoint: Vec2;
+  bossRoomId: string;
+  exitRoomId: string;
+}
+
+export interface MapConnection {
+  pathId?: string;
+  exitId?: string;
+  label: string;
+  weight: number;
+  tags: RouteTag[];
+  targetMapId?: string;
+}
+
+export interface PathData {
+  id: string;
+  points: Vec2[];
+  width: number;
+  tags: RouteTag[];
+  connections: MapConnection[];
+}
+
+export interface EncounterZone {
+  id: string;
+  x: number;
+  y: number;
+  radius: number;
+  chance: number;
+  enemyPool: string[];
+  cooldown: number;
+  variant?: 'normal' | 'boss';
+  once?: boolean;
+}
+
+export interface ExitPoint {
+  id: string;
+  x: number;
+  y: number;
+  radius: number;
+  targetMapId: string;
+  targetSpawnPoint: Vec2;
+  label: string;
+  visible: boolean;
+}
+
+export interface Interactable {
+  id: string;
+  kind: 'chest' | 'shrine' | 'npc' | 'altar';
+  name: string;
+  x: number;
+  y: number;
+  radius: number;
+  description: string;
+  once?: boolean;
+  loot?: number;
+  heal?: number;
+  stressRelief?: number;
+  faithDelta?: number;
+}
+
+export interface MapObstacle {
+  id: string;
+  kind: 'rect' | 'circle';
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
+  radius?: number;
+  color: number;
+  alpha?: number;
+}
+
+export interface MapDecoration {
+  id: string;
+  kind: 'torch' | 'bone' | 'pillar' | 'banner' | 'shrine';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  color: number;
+  alpha?: number;
+}
+
+export interface MapData {
+  id: string;
+  order: number;
+  name: string;
+  shortName: string;
+  description: string;
+  type: RoomType;
+  icon: string;
+  width: number;
+  height: number;
+  bgColor: number;
+  accentColor: number;
+  encounterRate: number;
+  special: string;
+  spawnPoint: Vec2;
+  startPathId: string;
+  paths: PathData[];
+  encounters: EncounterZone[];
+  exits: ExitPoint[];
+  interactables: Interactable[];
+  obstacles: MapObstacle[];
+  decorations: MapDecoration[];
+}
+
+export interface MapLink {
+  from: string;
+  to: string;
+}
+
+export interface FogRevealPoint extends Vec2 {
+  radius: number;
+}
+
+export interface PartyGuidance {
+  speed: number;
+  caution: number;
+  mission: number;
+  omenTargetMapId: string | null;
+}
+
+export interface PartyTokenState {
+  currentMapId: string;
+  currentPathId: string;
+  waypointIndex: number;
+  x: number;
+  y: number;
+  speed: number;
+  facing: Vec2;
+  targetNodeId?: string | null;
+  corridorId?: string | null;
+  waypoints?: Vec2[];
+}
+
+export interface BranchState {
+  nodeId: string;
+  options: BranchOptionSummary[];
+  preferences: RoutePreference[];
+  majorityNodeId: string;
+}
 
 export interface DecisionBreakdown {
   baseWeight: number;
@@ -174,6 +354,36 @@ export interface EventResolution {
   lootDelta: number;
 }
 
+export type ExplorationPhase = 'walking' | 'paused' | 'transitioning' | 'event';
+export type GamePhase =
+  | 'title'
+  | 'party_select'
+  | 'oracle_setup'
+  | 'exploration'
+  | 'battle'
+  | 'post_battle'
+  | 'results';
+
+export interface RoutePreference {
+  characterId: string;
+  characterName: string;
+  chosenNodeId: string;
+  chosenNodeName: string;
+  directionLabel: string;
+  reasonTags: string[];
+  scoreByNodeId: Record<string, number>;
+}
+
+export interface BranchOptionSummary {
+  nodeId: string;
+  nodeName: string;
+  directionLabel: string;
+  votes: number;
+  aggregateScore: number;
+  tags: RouteTag[];
+}
+
+export type ExplorationNudgeType = 'speed' | 'caution' | 'mission' | 'omen';
 export type InterventionType = 'omen' | 'blessing' | 'miracle';
 
 export interface Intervention {
@@ -184,17 +394,79 @@ export interface Intervention {
   flavorText: string;
 }
 
-export type GamePhase =
-  | 'title'
-  | 'party_selection'
-  | 'oracle_setup'
-  | 'expedition'
-  | 'result';
+export interface ExplorationNudges {
+  speed: number;
+  caution: number;
+  mission: number;
+  omenNodeId: string | null;
+}
+
+export interface EnemyUnit {
+  id: string;
+  name: string;
+  role: 'skirmisher' | 'guardian' | 'caster' | 'boss';
+  hp: number;
+  maxHp: number;
+  stress: number;
+  maxStress: number;
+  alive: boolean;
+  guard: number;
+  studied: boolean;
+}
+
+export interface BattlePartyMember extends Adventurer {
+  guard: number;
+  resolveBoost: number;
+  studiedTargetId: string | null;
+  protectedById: string | null;
+}
+
+export type BattleActionType =
+  | 'attack'
+  | 'protect_ally'
+  | 'heal'
+  | 'defend'
+  | 'study_enemy'
+  | 'press_forward';
+
+export interface BattleAction {
+  actorId: string;
+  actorName: string;
+  actionType: BattleActionType;
+  targetId?: string;
+  score: number;
+  summary: string;
+}
+
+export type BattleOmenFocus = 'attack' | 'guard' | 'study' | null;
+
+export interface BattleState {
+  roomId: string;
+  roomName: string;
+  variant: 'normal' | 'boss';
+  round: number;
+  party: BattlePartyMember[];
+  enemies: EnemyUnit[];
+  log: string[];
+  omenFocus: BattleOmenFocus;
+  blessingShield: number;
+  miracleUsedThisBattle: boolean;
+  lastRoundActions: BattleAction[];
+}
+
+export interface BattleSummary {
+  roomId: string;
+  roomName: string;
+  variant: 'normal' | 'boss';
+  result: 'victory' | 'defeat';
+  rounds: number;
+  log: string[];
+}
 
 export interface LogEntry {
   id: string;
   timestamp: number;
-  type: 'arrival' | 'decision' | 'outcome' | 'intervention' | 'system';
+  type: 'arrival' | 'decision' | 'outcome' | 'intervention' | 'battle' | 'system';
   text: string;
 }
 
@@ -206,12 +478,26 @@ export interface RunState {
   oracleConfig: OracleConfig | null;
   divinePower: number;
   maxDivinePower: number;
-  currentNodeId: string;
+  dungeonMap: DungeonMap | null;
   nodes: DungeonNode[];
-  visibleNodeIds: string[];
-  resolvedNodeIds: string[];
+  maps: MapData[];
+  mapLinks: MapLink[];
+  currentMapId: string;
+  exploredMapIds: string[];
+  visitedMapIds: string[];
+  clearedMapIds: string[];
+  clearedInteractableIds: string[];
+  discoveredExitIds: string[];
+  encounterCooldowns: Record<string, number>;
+  revealedAreas: Record<string, FogRevealPoint[]>;
   pathTaken: string[];
+  token: PartyTokenState;
+  explorationPhase: ExplorationPhase;
+  pendingBranch: BranchState | null;
+  explorationNudges: ExplorationNudges;
   resolutions: EventResolution[];
+  battleState: BattleState | null;
+  lastBattleSummary: BattleSummary | null;
   relicRecovered: boolean;
   bossCleared: boolean;
   escaped: boolean;
@@ -220,8 +506,6 @@ export interface RunState {
   interventionsUsed: Array<{ type: InterventionType; nodeId: string; optionId?: string }>;
   activeBlessing: BlessingType | null;
   expeditionComplete: boolean;
-  activeOmenOptionId: string | null;
-  activeBlessingBoost: boolean;
 }
 
 export interface TraitMeta {

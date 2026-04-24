@@ -1,8 +1,12 @@
 import type {
   Adventurer,
+  ExplorationPhase,
+  Interactable,
+  MapData,
   ParsedSignals,
   RiskLevel,
   RoomType,
+  RouteTag,
 } from '../types';
 
 export function clamp(value: number, min: number, max: number): number {
@@ -18,8 +22,8 @@ export function signalLabel(key: keyof ParsedSignals): string {
   const labels: Record<keyof ParsedSignals, string> = {
     survivalPriority: '求生',
     mercyPriority: '慈悲',
-    greedAllowance: '貪婪',
-    aggression: '好戰',
+    greedAllowance: '貪念',
+    aggression: '進攻',
     urgency: '速度',
     stealthPreference: '潛行',
     missionFocus: '任務',
@@ -29,13 +33,13 @@ export function signalLabel(key: keyof ParsedSignals): string {
 
 export function signalIcon(key: keyof ParsedSignals): string {
   const icons: Record<keyof ParsedSignals, string> = {
-    survivalPriority: '🛡️',
-    mercyPriority: '🫱',
+    survivalPriority: '🛡',
+    mercyPriority: '✚',
     greedAllowance: '💰',
-    aggression: '⚔️',
+    aggression: '⚔',
     urgency: '⚡',
-    stealthPreference: '🌫️',
-    missionFocus: '🎯',
+    stealthPreference: '🌫',
+    missionFocus: '✦',
   };
   return icons[key];
 }
@@ -43,13 +47,13 @@ export function signalIcon(key: keyof ParsedSignals): string {
 export function riskColor(level: RiskLevel): string {
   switch (level) {
     case 'high':
-      return 'text-rose-300 border-rose-500/40 bg-rose-500/10';
+      return 'text-rose-200 border-rose-500/40 bg-rose-500/10';
     case 'medium':
-      return 'text-amber-200 border-amber-500/40 bg-amber-500/10';
+      return 'text-amber-100 border-amber-400/40 bg-amber-400/10';
     case 'low':
       return 'text-emerald-200 border-emerald-500/40 bg-emerald-500/10';
     default:
-      return 'text-slate-300 border-slate-500/40 bg-slate-500/10';
+      return 'text-stone-300 border-stone-500/40 bg-stone-500/10';
   }
 }
 
@@ -71,18 +75,18 @@ export function goalLabel(goal: string): string {
     recover_relic: '奪回神器',
     rescue_survivors: '營救生還者',
     purge_corruption: '淨化邪穢',
-    scout_graveyard: '探索地牢',
+    scout_graveyard: '偵察墓城',
   };
   return labels[goal] ?? goal;
 }
 
 export function priorityLabel(priority: string): string {
   const labels: Record<string, string> = {
-    survival: '求生',
-    help_wounded: '救援',
-    avoid_conflict: '迴避戰鬥',
-    seek_wealth: '搜刮',
-    move_quickly: '速度',
+    survival: '求生優先',
+    help_wounded: '救援傷者',
+    avoid_conflict: '避免衝突',
+    seek_wealth: '搜刮財物',
+    move_quickly: '加速推進',
   };
   return labels[priority] ?? priority;
 }
@@ -99,20 +103,46 @@ export function riskLabel(risk: string): string {
 export function roomTypeLabel(type: RoomType): string {
   const labels: Record<RoomType, string> = {
     entrance: '入口',
-    combat: '戰鬥',
+    room: '廊室',
+    combat: '交戰',
     hazard: '險境',
-    choice: '抉擇',
-    treasure: '寶藏',
+    choice: '岔路',
+    treasure: '寶庫',
     shrine: '神殿',
     boss: '首領',
-    exit: '逃脫',
+    exit: '出口',
   };
   return labels[type];
+}
+
+export function explorationPhaseLabel(phase: ExplorationPhase): string {
+  const labels: Record<ExplorationPhase, string> = {
+    walking: '行軍中',
+    paused: '停步',
+    transitioning: '轉場中',
+    event: '事件中',
+  };
+  return labels[phase];
+}
+
+export function mapSpecialLabel(map: Pick<MapData, 'special'> | null | undefined): string {
+  return map?.special ?? '探索中';
+}
+
+export function interactableKindLabel(kind: Interactable['kind']): string {
+  const labels: Record<Interactable['kind'], string> = {
+    chest: '寶箱',
+    shrine: '神壇',
+    npc: '人物',
+    altar: '神龕',
+  };
+  return labels[kind];
 }
 
 export function roomTypeIcon(type: RoomType): string {
   const icons: Record<RoomType, string> = {
     entrance: '🚪',
+    room: '🕯️',
     combat: '⚔️',
     hazard: '🪵',
     choice: '🩹',
@@ -122,6 +152,26 @@ export function roomTypeIcon(type: RoomType): string {
     exit: '🏃',
   };
   return icons[type];
+}
+
+export function routeTagLabel(tag: RouteTag): string {
+  const labels: Record<RouteTag, string> = {
+    mission: '任務',
+    safe: '穩健',
+    danger: '冒險',
+    loot: '財物',
+    mercy: '救援',
+    speed: '迅捷',
+    knowledge: '情報',
+    boss: '首領',
+  };
+  return labels[tag];
+}
+
+export function directionLabel(y: number): string {
+  if (y < 40) return '上路';
+  if (y > 68) return '下路';
+  return '正前';
 }
 
 export function characterClassIcon(cls: string): string {
@@ -144,9 +194,9 @@ export function missionResultLabel(result: string): string {
     case 'success':
       return '任務完成';
     case 'partial':
-      return '慘勝';
+      return '帶傷歸還';
     case 'failure':
-      return '任務失敗';
+      return '遠征失敗';
     default:
       return result;
   }
@@ -157,11 +207,11 @@ export function missionResultColor(result: string): string {
     case 'success':
       return 'text-emerald-300';
     case 'partial':
-      return 'text-amber-200';
+      return 'text-amber-100';
     case 'failure':
       return 'text-rose-300';
     default:
-      return 'text-slate-200';
+      return 'text-stone-200';
   }
 }
 
@@ -195,4 +245,16 @@ export function classDisplayName(cls: string): string {
     Ranger: '遊俠',
   };
   return names[cls] ?? cls;
+}
+
+export function battleActionLabel(action: string): string {
+  const labels: Record<string, string> = {
+    attack: '攻擊',
+    protect_ally: '掩護',
+    heal: '治療',
+    defend: '防守',
+    study_enemy: '觀察',
+    press_forward: '追擊',
+  };
+  return labels[action] ?? action;
 }

@@ -8,36 +8,38 @@ import type {
   SecondaryPriority,
 } from '../types';
 import { generateCharacterInterpretation, parseOracle } from '../game/oracleParser';
+import MobileShell from '../components/MobileShell';
 import OracleSummary from '../components/OracleSummary';
 import { classDisplayName, characterClassIcon } from '../utils/helpers';
 
 interface Props {
   party: Adventurer[];
   onConfirm: (config: OracleConfig) => void;
+  onBack: () => void;
 }
 
 const PRIMARY_GOALS: Array<{ id: PrimaryGoal; label: string; note: string }> = [
-  { id: 'recover_relic', label: '奪回遺物', note: '最高任務專注。' },
-  { id: 'rescue_survivors', label: '救援', note: '慈悲優先路線。' },
-  { id: 'purge_corruption', label: '清除腐敗', note: '更強侵略性，更少克制。' },
-  { id: 'scout_graveyard', label: '偵察', note: '潛行與情報優先。' },
+  { id: 'recover_relic', label: '奪回神器', note: '任務焦點最高。' },
+  { id: 'rescue_survivors', label: '營救生還者', note: '偏慈悲與保全。' },
+  { id: 'purge_corruption', label: '淨化邪穢', note: '更偏進攻。' },
+  { id: 'scout_graveyard', label: '偵察墓城', note: '偏情報與潛行。' },
 ];
 
 const SECONDARY: Array<{ id: SecondaryPriority; label: string }> = [
   { id: 'survival', label: '求生' },
-  { id: 'help_wounded', label: '救助傷者' },
-  { id: 'avoid_conflict', label: '避免衝突' },
+  { id: 'help_wounded', label: '救援' },
+  { id: 'avoid_conflict', label: '避戰' },
   { id: 'seek_wealth', label: '搜刮' },
-  { id: 'move_quickly', label: '加速前進' },
+  { id: 'move_quickly', label: '加速' },
 ];
 
 const BLESSINGS: Array<{ id: BlessingType; label: string; note: string }> = [
-  { id: 'shielding_light', label: '護盾之光', note: '首個受傷房間傷害減半。' },
-  { id: 'healing_grace', label: '治癒恩典', note: '以更健康、更平靜的狀態出發。' },
-  { id: 'guiding_omen', label: '引導神諭', note: '首次神諭免費使用。' },
+  { id: 'shielding_light', label: '護盾之光', note: '首次危險傷害減半。' },
+  { id: 'healing_grace', label: '治癒恩典', note: '開局回體降壓。' },
+  { id: 'guiding_omen', label: '引導神諭', note: '首次徵兆免費。' },
 ];
 
-export default function OracleSetupScreen({ party, onConfirm }: Props) {
+export default function OracleSetupScreen({ party, onConfirm, onBack }: Props) {
   const [primaryGoal, setPrimaryGoal] = useState<PrimaryGoal>('recover_relic');
   const [secondaryPriorities, setSecondaryPriorities] = useState<SecondaryPriority[]>(['survival']);
   const [riskTolerance, setRiskTolerance] = useState<RiskTolerance>('medium');
@@ -74,167 +76,171 @@ export default function OracleSetupScreen({ party, onConfirm }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#101319_0%,#0a0d12_100%)] px-4 py-6 sm:px-6">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6">
+    <MobileShell>
+      <div className="flex min-h-[calc(100dvh-24px)] flex-col gap-4 rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(12,17,24,0.96),rgba(5,7,11,1))] p-4 shadow-[0_32px_120px_rgba(0,0,0,0.55)]">
         <div>
-          <div className="text-xs uppercase tracking-[0.35em] text-stone-500">神諭設定</div>
-          <h1 className="mt-2 text-3xl font-semibold text-stone-100">設定突擊信號</h1>
-          <p className="mt-2 text-sm text-stone-400">簡化輸入。隊伍將透過信仰、職業、狀態和特質詮釋這些信號。</p>
+          <div className="text-[10px] uppercase tracking-[0.34em] text-stone-500">神諭設置</div>
+          <h1 className="mt-2 text-3xl font-semibold text-stone-100">設定本次神意</h1>
+          <p className="mt-2 text-sm text-stone-400">
+            你提供的是傾向，不是命令。隊伍會把神意與自身個性混合，自己作出探索與戰鬥判斷。
+          </p>
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-          <div className="space-y-5">
-            <section className="panel p-4">
-              <div className="mb-3 text-sm font-semibold text-stone-100">主要目標</div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {PRIMARY_GOALS.map((goal) => (
-                  <button
-                    key={goal.id}
-                    type="button"
-                    onClick={() => setPrimaryGoal(goal.id)}
-                    className={[
-                      'rounded-2xl border px-4 py-4 text-left transition',
-                      primaryGoal === goal.id
-                        ? 'border-amber-300/70 bg-amber-300/10'
-                        : 'border-stone-800 bg-stone-950/50 hover:border-stone-600',
-                    ].join(' ')}
-                  >
-                    <div className="text-sm font-semibold text-stone-100">{goal.label}</div>
-                    <div className="mt-1 text-xs text-stone-500">{goal.note}</div>
-                  </button>
-                ))}
-              </div>
-            </section>
-
-            <section className="panel p-4">
-              <div className="mb-3 flex items-center justify-between">
-                <div className="text-sm font-semibold text-stone-100">次要優先事項</div>
-                <div className="text-xs text-stone-500">最多選 2 項</div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {SECONDARY.map((priority) => {
-                  const active = secondaryPriorities.includes(priority.id);
-                  const blocked = !active && secondaryPriorities.length >= 2;
-                  return (
-                    <button
-                      key={priority.id}
-                      type="button"
-                      onClick={() => togglePriority(priority.id)}
-                      disabled={blocked}
-                      className={[
-                        'rounded-full border px-4 py-2 text-sm transition',
-                        active
-                          ? 'border-amber-300/70 bg-amber-300/10 text-amber-100'
-                          : blocked
-                          ? 'border-stone-900 bg-stone-950/30 text-stone-700'
-                          : 'border-stone-700 bg-stone-950/50 text-stone-300 hover:border-stone-500',
-                      ].join(' ')}
-                    >
-                      {priority.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-
-            <section className="panel p-4">
-              <div className="mb-3 text-sm font-semibold text-stone-100">風險容忍度</div>
-              <div className="grid gap-3 sm:grid-cols-3">
-                {(['low', 'medium', 'high'] as RiskTolerance[]).map((risk) => {
-                  const riskLabel: Record<RiskTolerance, string> = { low: '低', medium: '中', high: '高' };
-                  return (
-                  <button
-                    key={risk}
-                    type="button"
-                    onClick={() => setRiskTolerance(risk)}
-                    className={[
-                      'rounded-2xl border px-4 py-4 text-center text-sm uppercase tracking-[0.2em] transition',
-                      riskTolerance === risk
-                        ? 'border-amber-300/70 bg-amber-300/10 text-amber-100'
-                        : 'border-stone-800 bg-stone-950/50 text-stone-400 hover:border-stone-600',
-                    ].join(' ')}
-                  >
-                    {riskLabel[risk]}
-                  </button>
-                  );
-                })}
-              </div>
-            </section>
-
-            <section className="panel p-4">
-              <div className="mb-3 text-sm font-semibold text-stone-100">起始祝福</div>
-              <div className="grid gap-3 sm:grid-cols-3">
-                {BLESSINGS.map((blessing) => (
-                  <button
-                    key={blessing.id}
-                    type="button"
-                    onClick={() => setStartingBlessing(blessing.id)}
-                    className={[
-                      'rounded-2xl border px-4 py-4 text-left transition',
-                      startingBlessing === blessing.id
-                        ? 'border-violet-300/70 bg-violet-300/10'
-                        : 'border-stone-800 bg-stone-950/50 hover:border-stone-600',
-                    ].join(' ')}
-                  >
-                    <div className="text-sm font-semibold text-stone-100">{blessing.label}</div>
-                    <div className="mt-1 text-xs text-stone-500">{blessing.note}</div>
-                  </button>
-                ))}
-              </div>
-            </section>
-
-            <section className="panel p-4">
-              <div className="mb-3 text-sm font-semibold text-stone-100">附加指令</div>
-              <textarea
-                rows={2}
-                value={addendumText}
-                onChange={(event) => setAddendumText(event.target.value.slice(0, 120))}
-                placeholder="選填關鍵字：安全、快速、救援、潛行、神器優先……"
-                className="w-full rounded-2xl border border-stone-700 bg-stone-950/70 px-4 py-3 text-sm text-stone-100 outline-none transition placeholder:text-stone-600 focus:border-amber-300/60"
-              />
-            </section>
-          </div>
-
-          <div className="space-y-5">
-            <div className="panel p-4">
-              <div className="mb-3 text-sm font-semibold text-stone-100">神諭讀數</div>
-              <OracleSummary intent={intent} compact />
+        <div className="flex-1 space-y-4 overflow-y-auto pr-1">
+          <section className="rounded-[26px] border border-white/10 bg-white/[0.04] p-4">
+            <div className="mb-3 text-sm font-semibold text-stone-100">主要目標</div>
+            <div className="space-y-2">
+              {PRIMARY_GOALS.map((goal) => (
+                <button
+                  key={goal.id}
+                  type="button"
+                  onClick={() => setPrimaryGoal(goal.id)}
+                  className={[
+                    'tap-btn w-full rounded-[20px] border px-4 py-3 text-left transition',
+                    primaryGoal === goal.id
+                      ? 'border-amber-300/60 bg-amber-300/10'
+                      : 'border-white/10 bg-black/20',
+                  ].join(' ')}
+                >
+                  <div className="text-sm font-semibold text-stone-100">{goal.label}</div>
+                  <div className="mt-1 text-[12px] text-stone-400">{goal.note}</div>
+                </button>
+              ))}
             </div>
+          </section>
 
-            <div className="panel p-4">
-              <div className="mb-4 text-sm font-semibold text-stone-100">隊伍詮釋</div>
-              <div className="space-y-3">
-                {interpretations.map(({ member, lines }) => (
-                  <div key={member.id} className="rounded-2xl border border-stone-800 bg-stone-950/60 p-3">
-                    <div className="mb-2 flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-stone-700 bg-stone-900 text-lg">
-                        {characterClassIcon(member.class)}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-sm font-semibold text-stone-100">{member.name}</div>
-                        <div className="text-xs text-stone-500">{classDisplayName(member.class)}</div>
-                      </div>
-                      <div className="text-right text-xs text-stone-500">
-                        信仰 {member.faith}
-                        <div>忠誠 {member.loyalty}</div>
-                      </div>
+          <section className="rounded-[26px] border border-white/10 bg-white/[0.04] p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <div className="text-sm font-semibold text-stone-100">次要優先</div>
+              <div className="text-[11px] text-stone-500">最多 2 項</div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {SECONDARY.map((priority) => {
+                const active = secondaryPriorities.includes(priority.id);
+                const blocked = !active && secondaryPriorities.length >= 2;
+                return (
+                  <button
+                    key={priority.id}
+                    type="button"
+                    onClick={() => togglePriority(priority.id)}
+                    disabled={blocked}
+                    className={[
+                      'tap-btn rounded-[18px] border px-3 py-3 text-sm transition',
+                      active
+                        ? 'border-amber-300/60 bg-amber-300/10 text-amber-100'
+                        : blocked
+                        ? 'border-white/5 bg-black/10 text-stone-600'
+                        : 'border-white/10 bg-black/20 text-stone-200',
+                    ].join(' ')}
+                  >
+                    {priority.label}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="rounded-[26px] border border-white/10 bg-white/[0.04] p-4">
+            <div className="mb-3 text-sm font-semibold text-stone-100">風險容忍</div>
+            <div className="grid grid-cols-3 gap-2">
+              {(['low', 'medium', 'high'] as RiskTolerance[]).map((risk) => (
+                <button
+                  key={risk}
+                  type="button"
+                  onClick={() => setRiskTolerance(risk)}
+                  className={[
+                    'tap-btn rounded-[18px] border px-3 py-3 text-sm tracking-[0.18em] transition',
+                    riskTolerance === risk
+                      ? 'border-amber-300/60 bg-amber-300/10 text-amber-100'
+                      : 'border-white/10 bg-black/20 text-stone-200',
+                  ].join(' ')}
+                >
+                  {risk === 'low' ? '穩健' : risk === 'medium' ? '均衡' : '冒進'}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-[26px] border border-white/10 bg-white/[0.04] p-4">
+            <div className="mb-3 text-sm font-semibold text-stone-100">出發祝福</div>
+            <div className="space-y-2">
+              {BLESSINGS.map((blessing) => (
+                <button
+                  key={blessing.id}
+                  type="button"
+                  onClick={() => setStartingBlessing(blessing.id)}
+                  className={[
+                    'tap-btn w-full rounded-[20px] border px-4 py-3 text-left transition',
+                    startingBlessing === blessing.id
+                      ? 'border-sky-300/55 bg-sky-300/10'
+                      : 'border-white/10 bg-black/20',
+                  ].join(' ')}
+                >
+                  <div className="text-sm font-semibold text-stone-100">{blessing.label}</div>
+                  <div className="mt-1 text-[12px] text-stone-400">{blessing.note}</div>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-[26px] border border-white/10 bg-white/[0.04] p-4">
+            <div className="mb-3 text-sm font-semibold text-stone-100">附註</div>
+            <textarea
+              rows={3}
+              value={addendumText}
+              onChange={(event) => setAddendumText(event.target.value.slice(0, 120))}
+              placeholder="例如：安全、快速、任務優先、潛行、救援。"
+              className="w-full rounded-[20px] border border-white/10 bg-black/20 px-4 py-3 text-sm text-stone-100 outline-none placeholder:text-stone-600 focus:border-amber-300/45"
+            />
+          </section>
+
+          <section className="rounded-[26px] border border-white/10 bg-white/[0.04] p-4">
+            <div className="mb-3 text-sm font-semibold text-stone-100">神意讀數</div>
+            <OracleSummary intent={intent} compact />
+          </section>
+
+          <section className="rounded-[26px] border border-white/10 bg-white/[0.04] p-4">
+            <div className="mb-3 text-sm font-semibold text-stone-100">角色解讀</div>
+            <div className="space-y-2">
+              {interpretations.map(({ member, lines }) => (
+                <div key={member.id} className="rounded-[20px] border border-white/10 bg-black/20 p-3">
+                  <div className="mb-2 flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[#0d1219] text-lg">
+                      {characterClassIcon(member.class)}
                     </div>
-                    <div className="space-y-1 text-sm text-stone-400">
-                      {lines.map((line) => (
-                        <div key={line}>{line}</div>
-                      ))}
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-semibold text-stone-100">{member.name}</div>
+                      <div className="text-[12px] text-stone-400">{classDisplayName(member.class)}</div>
+                    </div>
+                    <div className="text-right text-[11px] text-stone-500">
+                      <div>信仰 {member.faith}</div>
+                      <div>忠誠 {member.loyalty}</div>
                     </div>
                   </div>
-                ))}
-              </div>
+                  <div className="space-y-1 text-sm text-stone-300">
+                    {lines.map((line) => (
+                      <div key={line}>{line}</div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
+          </section>
+        </div>
 
-            <button className="btn-primary w-full py-3 text-base" onClick={() => onConfirm(config)}>
-              進入地牢
-            </button>
-          </div>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={onBack}
+            className="tap-btn rounded-[18px] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-stone-200"
+          >
+            返回
+          </button>
+          <button className="btn-primary" onClick={() => onConfirm(config)}>
+            開始遠征
+          </button>
         </div>
       </div>
-    </div>
+    </MobileShell>
   );
 }

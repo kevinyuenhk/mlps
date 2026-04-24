@@ -1,9 +1,5 @@
 import type { Adventurer } from '../types';
-import {
-  characterClassIcon,
-  classDisplayName,
-  traitDisplayName,
-} from '../utils/helpers';
+import { characterClassIcon, classDisplayName, traitDisplayName } from '../utils/helpers';
 
 interface Props {
   adventurer: Adventurer;
@@ -20,7 +16,7 @@ export default function AdventurerCard({
 }: Props) {
   const riskTone = {
     high: 'text-rose-300 border-rose-500/30 bg-rose-500/10',
-    medium: 'text-amber-200 border-amber-500/30 bg-amber-500/10',
+    medium: 'text-amber-100 border-amber-500/30 bg-amber-500/10',
     low: 'text-emerald-200 border-emerald-500/30 bg-emerald-500/10',
   }[adventurer.riskBias];
 
@@ -44,18 +40,22 @@ export default function AdventurerCard({
             <div className="text-sm text-stone-400">{classDisplayName(adventurer.class)}</div>
           </div>
         </div>
-        <div className={`rounded-full border px-2 py-1 text-[11px] uppercase tracking-[0.25em] ${riskTone}`}>
-          {adventurer.riskBias}
+        <div className={`rounded-full border px-2 py-1 text-[11px] tracking-[0.25em] ${riskTone}`}>
+          {adventurer.riskBias === 'high'
+            ? '高風險'
+            : adventurer.riskBias === 'medium'
+            ? '均衡'
+            : '穩健'}
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2 text-xs">
         <div className="rounded-2xl border border-stone-800 bg-stone-950/60 p-3">
-          <div className="text-stone-500">Faith</div>
-          <div className="mt-1 text-lg font-semibold text-violet-200">{adventurer.faith}</div>
+          <div className="text-stone-500">信仰</div>
+          <div className="mt-1 text-lg font-semibold text-sky-200">{adventurer.faith}</div>
         </div>
         <div className="rounded-2xl border border-stone-800 bg-stone-950/60 p-3">
-          <div className="text-stone-500">Loyalty</div>
+          <div className="text-stone-500">忠誠</div>
           <div className="mt-1 text-lg font-semibold text-amber-200">{adventurer.loyalty}</div>
         </div>
       </div>
@@ -72,9 +72,9 @@ export default function AdventurerCard({
 
       <div className="mt-auto flex items-center justify-between text-xs">
         <div className="text-stone-500">
-          HP {adventurer.hp}/{adventurer.maxHp} • Stress {adventurer.stress}
+          體力 {adventurer.hp}/{adventurer.maxHp} ・ 壓力 {adventurer.stress}
         </div>
-        {selected && <div className="font-semibold text-amber-200">Selected</div>}
+        {selected && <div className="font-semibold text-amber-200">已選入</div>}
       </div>
     </button>
   );
