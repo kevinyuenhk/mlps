@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-950 text-gray-100 font-sans antialiased;
+    min-height: 100vh;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-900;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-600 rounded;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply bg-gray-900 border border-gray-700 rounded-lg;
+  }
+
+  .panel-header {
+    @apply text-xs font-semibold uppercase tracking-widest text-gray-500 px-4 py-2 border-b border-gray-700;
+  }
+
+  .btn-primary {
+    @apply bg-amber-600 hover:bg-amber-500 text-gray-950 font-semibold px-5 py-2.5 rounded-lg
+           transition-colors disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-800 hover:bg-gray-700 text-gray-200 font-medium px-4 py-2 rounded-lg
+           border border-gray-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .btn-danger {
+    @apply bg-red-900 hover:bg-red-800 text-red-200 font-medium px-4 py-2 rounded-lg
+           border border-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .trait-badge {
+    @apply text-xs px-2 py-0.5 rounded border border-gray-600 bg-gray-800 text-gray-300;
+  }
+
+  .stat-bar-wrap {
+    @apply h-1.5 rounded-full bg-gray-700 overflow-hidden;
+  }
+
+  .signal-row {
+    @apply flex items-center gap-2 text-xs;
+  }
+
+  .card-selected {
+    @apply ring-2 ring-amber-400 ring-offset-2 ring-offset-gray-950;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
