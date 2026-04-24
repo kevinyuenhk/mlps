@@ -42,18 +42,18 @@ export default function OracleSummary({ intent, compact = false }: Props) {
     <div className={compact ? '' : 'panel p-4'}>
       {!compact && (
         <h3 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-3">
-          Divine Intent
+          神聖意志摘要
         </h3>
       )}
 
       <div className="space-y-2 text-xs mb-3">
         <div className="flex gap-2">
-          <span className="text-gray-500">Goal:</span>
+          <span className="text-gray-500">目標：</span>
           <span className="text-amber-300 font-medium">{goalLabel(intent.primaryGoal)}</span>
         </div>
         {intent.priorities.length > 0 && (
           <div className="flex gap-2 flex-wrap">
-            <span className="text-gray-500 shrink-0">Priorities:</span>
+            <span className="text-gray-500 shrink-0">優先事項：</span>
             <div className="flex flex-wrap gap-1">
               {intent.priorities.map((p) => (
                 <span key={p} className="trait-badge">{priorityLabel(p)}</span>
@@ -62,11 +62,11 @@ export default function OracleSummary({ intent, compact = false }: Props) {
           </div>
         )}
         <div className="flex gap-2">
-          <span className="text-gray-500">Risk:</span>
+          <span className="text-gray-500">風險：</span>
           <span className="text-gray-300">{riskLabel(intent.riskTolerance)}</span>
         </div>
         {intent.addendumText && (
-          <div className="text-gray-500 italic">"{intent.addendumText}"</div>
+          <div className="text-gray-500 italic">「{intent.addendumText}」</div>
         )}
       </div>
 

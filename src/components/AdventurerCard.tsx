@@ -1,5 +1,5 @@
 import type { Adventurer } from '../types';
-import { characterClassIcon, hpColor, stressColor } from '../utils/helpers';
+import { characterClassIcon, classDisplayName, hpColor, stressColor, traitDisplayName } from '../utils/helpers';
 
 interface Props {
   adventurer: Adventurer;
@@ -17,7 +17,7 @@ export default function AdventurerCard({
   showStats = false,
 }: Props) {
   const hpPct = Math.round((a.hp / a.maxHp) * 100);
-  const riskLabel = a.riskBias === 'high' ? 'Bold' : a.riskBias === 'low' ? 'Cautious' : 'Measured';
+  const riskLabel = a.riskBias === 'high' ? '大膽' : a.riskBias === 'low' ? '謹慎' : '穩健';
   const riskColors: Record<string, string> = {
     high: 'text-red-400',
     medium: 'text-amber-400',
@@ -43,20 +43,20 @@ export default function AdventurerCard({
             <span className="text-lg">{characterClassIcon(a.class)}</span>
             <div>
               <div className="font-semibold text-gray-100">{a.name}</div>
-              <div className="text-xs text-gray-500">{a.class}</div>
+              <div className="text-xs text-gray-500">{classDisplayName(a.class)}</div>
             </div>
           </div>
         </div>
         <div className="text-right shrink-0">
           <div className={`text-xs font-medium ${riskColors[a.riskBias]}`}>{riskLabel}</div>
-          <div className="text-xs text-gray-500">Risk Bias</div>
+          <div className="text-xs text-gray-500">風險傾向</div>
         </div>
       </div>
 
       {/* Traits */}
       <div className="flex flex-wrap gap-1">
         {a.traits.map((t) => (
-          <span key={t} className="trait-badge">{t}</span>
+          <span key={t} className="trait-badge">{traitDisplayName(t)}</span>
         ))}
       </div>
 
@@ -64,7 +64,7 @@ export default function AdventurerCard({
       <div className="grid grid-cols-2 gap-2 text-xs">
         <div>
           <div className="flex justify-between text-gray-500 mb-1">
-            <span>Faith</span>
+            <span>信仰</span>
             <span>{a.faith}</span>
           </div>
           <div className="stat-bar-wrap">
@@ -76,7 +76,7 @@ export default function AdventurerCard({
         </div>
         <div>
           <div className="flex justify-between text-gray-500 mb-1">
-            <span>Loyalty</span>
+            <span>忠誠度</span>
             <span>{a.loyalty}</span>
           </div>
           <div className="stat-bar-wrap">
@@ -93,7 +93,7 @@ export default function AdventurerCard({
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div>
             <div className="flex justify-between text-gray-500 mb-1">
-              <span>HP</span>
+              <span>體力</span>
               <span>{a.hp}/{a.maxHp}</span>
             </div>
             <div className="stat-bar-wrap">
@@ -105,7 +105,7 @@ export default function AdventurerCard({
           </div>
           <div>
             <div className="flex justify-between text-gray-500 mb-1">
-              <span>Stress</span>
+              <span>壓力</span>
               <span>{a.stress}</span>
             </div>
             <div className="stat-bar-wrap">
@@ -122,10 +122,10 @@ export default function AdventurerCard({
       <p className="text-xs text-gray-500 leading-relaxed">{a.shortBio}</p>
 
       {selected && selectable && (
-        <div className="text-xs text-amber-400 font-medium text-center">✓ Selected</div>
+        <div className="text-xs text-amber-400 font-medium text-center">✓ 已選擇</div>
       )}
       {!a.alive && (
-        <div className="text-xs text-red-400 font-medium text-center">✗ Fallen</div>
+        <div className="text-xs text-red-400 font-medium text-center">✗ 陣亡</div>
       )}
     </div>
   );

@@ -11,13 +11,13 @@ export function pct(value: number, total: number): number {
 
 export function signalLabel(key: keyof ParsedSignals): string {
   const labels: Record<keyof ParsedSignals, string> = {
-    survivalPriority: 'Survival',
-    mercyPriority: 'Mercy',
-    greedAllowance: 'Greed',
-    aggression: 'Aggression',
-    urgency: 'Urgency',
-    stealthPreference: 'Stealth',
-    missionFocus: 'Mission Focus',
+    survivalPriority: '求生優先',
+    mercyPriority: '慈悲優先',
+    greedAllowance: '貪慾容忍',
+    aggression: '攻擊傾向',
+    urgency: '緊迫程度',
+    stealthPreference: '潛行偏好',
+    missionFocus: '任務專注',
   };
   return labels[key];
 }
@@ -52,30 +52,30 @@ export function stressColor(stress: number): string {
 
 export function goalLabel(goal: string): string {
   const labels: Record<string, string> = {
-    recover_relic: 'Recover the Relic',
-    rescue_survivors: 'Rescue Survivors',
-    purge_corruption: 'Purge Corruption',
-    scout_graveyard: 'Scout the Graveyard',
+    recover_relic: '取回神器',
+    rescue_survivors: '救援倖存者',
+    purge_corruption: '清除腐敗',
+    scout_graveyard: '偵察墓地',
   };
   return labels[goal] ?? goal;
 }
 
 export function priorityLabel(p: string): string {
   const labels: Record<string, string> = {
-    survival: 'Prioritize Survival',
-    help_wounded: 'Help the Wounded',
-    avoid_conflict: 'Avoid Conflict',
-    seek_wealth: 'Seek Wealth',
-    move_quickly: 'Move Quickly',
+    survival: '優先求生',
+    help_wounded: '救助傷者',
+    avoid_conflict: '避免衝突',
+    seek_wealth: '尋找財富',
+    move_quickly: '快速行進',
   };
   return labels[p] ?? p;
 }
 
 export function riskLabel(r: string): string {
   const labels: Record<string, string> = {
-    low: 'Low Risk',
-    medium: 'Medium Risk',
-    high: 'High Risk',
+    low: '低風險',
+    medium: '中等風險',
+    high: '高風險',
   };
   return labels[r] ?? r;
 }
@@ -101,9 +101,9 @@ export function formatScore(n: number): string {
 
 export function missionResultLabel(result: string): string {
   switch (result) {
-    case 'success': return 'Mission Successful';
-    case 'partial': return 'Partial Success';
-    case 'failure': return 'Mission Failed';
+    case 'success': return '任務成功';
+    case 'partial': return '部分成功';
+    case 'failure': return '任務失敗';
     default: return result;
   }
 }
@@ -115,4 +115,36 @@ export function missionResultColor(result: string): string {
     case 'failure': return 'text-red-400';
     default: return 'text-gray-400';
   }
+}
+
+export function traitDisplayName(trait: string): string {
+  const names: Record<string, string> = {
+    Brave: '勇敢',
+    Loyal: '忠誠',
+    Stubborn: '固執',
+    Compassionate: '慈悲',
+    Fearful: '膽怯',
+    Devout: '虔誠',
+    Greedy: '貪婪',
+    Clever: '機智',
+    Skeptical: '懷疑',
+    Curious: '好奇',
+    Rational: '理性',
+    Fragile: '脆弱',
+    Calm: '冷靜',
+    Dutiful: '盡責',
+    Wary: '謹慎',
+  };
+  return names[trait] ?? trait;
+}
+
+export function classDisplayName(cls: string): string {
+  const names: Record<string, string> = {
+    Knight: '騎士',
+    Healer: '治癒者',
+    Rogue: '盜賊',
+    Mage: '法師',
+    Ranger: '遊俠',
+  };
+  return names[cls] ?? cls;
 }

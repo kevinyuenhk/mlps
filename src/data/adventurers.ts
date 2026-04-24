@@ -3,7 +3,7 @@ import type { Adventurer } from '../types';
 export const ADVENTURER_POOL: Adventurer[] = [
   {
     id: 'rowan',
-    name: 'Rowan',
+    name: '羅文',
     class: 'Knight',
     traits: ['Brave', 'Loyal', 'Stubborn'],
     faith: 72,
@@ -14,11 +14,11 @@ export const ADVENTURER_POOL: Adventurer[] = [
     alive: true,
     riskBias: 'high',
     shortBio:
-      'A veteran temple guard who treats divine commands as battlefield orders. Rowan will push forward when others waver, sometimes past the point of wisdom.',
+      '久經沙場的神殿衛士，將神意視為戰場號令，奉行不渝。當他人動搖之際，羅文仍會奮勇向前——有時甚至超越了智慧所能允許的極限。',
   },
   {
     id: 'mira',
-    name: 'Mira',
+    name: '米拉',
     class: 'Healer',
     traits: ['Compassionate', 'Fearful', 'Devout'],
     faith: 92,
@@ -29,11 +29,11 @@ export const ADVENTURER_POOL: Adventurer[] = [
     alive: true,
     riskBias: 'low',
     shortBio:
-      'A devoted temple healer who hears the gods clearly but flinches from danger. Her mercy may cost the party time; her faith makes divine intent resonate deeply within her.',
+      '虔誠的神殿治癒者，能清晰感知神明的旨意，卻對危險畏縮退卻。她的仁慈或許會拖累隊伍的進度，但她深厚的信仰使神意在她心中迴響尤為強烈。',
   },
   {
     id: 'kell',
-    name: 'Kell',
+    name: '凱爾',
     class: 'Rogue',
     traits: ['Greedy', 'Clever', 'Skeptical'],
     faith: 28,
@@ -44,11 +44,11 @@ export const ADVENTURER_POOL: Adventurer[] = [
     alive: true,
     riskBias: 'medium',
     shortBio:
-      'A street-wise scoundrel who joined for the payout. Kell is useful and resourceful but treats divine guidance as optional advice. Treasure will tempt him from any path.',
+      '為了報酬而加入的市井無賴，機靈且善用資源，卻將神意視為可有可無的建議。財寶足以令他偏離任何道路。',
   },
   {
     id: 'iven',
-    name: 'Iven',
+    name: '艾文',
     class: 'Mage',
     traits: ['Curious', 'Rational', 'Fragile'],
     faith: 45,
@@ -59,11 +59,11 @@ export const ADVENTURER_POOL: Adventurer[] = [
     alive: true,
     riskBias: 'medium',
     shortBio:
-      'A scholar-mage fascinated by the arcane residue in the graveyard. Iven weighs options methodically but cannot handle sustained physical danger. Curiosity often overrides caution.',
+      '對墓地中奧術殘留深感著迷的學者法師。艾文會審慎權衡每個選項，卻難以承受持續的肉體危險。好奇心往往凌駕於謹慎之上。',
   },
   {
     id: 'serah',
-    name: 'Serah',
+    name: '賽拉',
     class: 'Ranger',
     traits: ['Calm', 'Dutiful', 'Wary'],
     faith: 60,
@@ -74,6 +74,6 @@ export const ADVENTURER_POOL: Adventurer[] = [
     alive: true,
     riskBias: 'low',
     shortBio:
-      'A composed scout who values measured progress over glory. Serah follows orders reliably but will insist on safe routes when possible. She rarely panics; she rarely charges either.',
+      '沉著冷靜的斥候，重穩健推進勝於追求榮耀。賽拉會可靠地執行命令，但在可能的情況下始終堅持走安全路線。她鮮少驚慌，也鮮少衝鋒。',
   },
 ];

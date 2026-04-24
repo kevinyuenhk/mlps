@@ -3,47 +3,47 @@ import type { Intervention } from '../types';
 export const INTERVENTIONS: Intervention[] = [
   {
     type: 'omen',
-    label: 'Send an Omen',
+    label: '降示神諭',
     description:
-      'Nudge the party toward a specific option. Select an option after activating — it gains a significant boost in the party\'s deliberation.',
+      '引導隊伍趨向特定選項。啟動後選擇目標選項——該選項在隊伍的商議中將獲得顯著的加成。',
     cost: 1,
-    flavorText: 'A divine sign: a sudden wind, a flash of clarity, a voice in the mind.',
+    flavorText: '神聖的徵兆：驟起的風聲、突如其來的清明，或是心中響起的低語。',
   },
   {
     type: 'blessing',
-    label: 'Bestow a Blessing',
+    label: '賜予祝福',
     description:
-      'Strengthen resolve. The party\'s loyalty is temporarily heightened, making them more cohesive in their next decision.',
+      '強化眾人的意志。隊伍的忠誠度暫時提升，使他們在下一次決策中更為團結一致。',
     cost: 1,
-    flavorText: 'Golden warmth suffuses the party. Doubt retreats. The bond holds.',
+    flavorText: '金色的暖意瀰漫全隊。疑慮退散。羈絆依然堅固。',
   },
   {
     type: 'miracle',
-    label: 'Invoke a Miracle',
+    label: '召喚奇蹟',
     description:
-      'A major divine act: heal all party members significantly and reduce their stress. Costs 2 divine power.',
+      '重大的神聖行動：大幅治癒所有隊員並降低他們的壓力。消耗2點神力。',
     cost: 2,
-    flavorText: 'Light descends. Wounds knit. Pain fades. The god is present.',
+    flavorText: '光輝降臨。傷口癒合。痛苦消散。神明現身於此。',
   },
 ];
 
 export const BLESSINGS = [
   {
     id: 'shielding_light',
-    label: 'Shielding Light',
-    description: 'The party begins with divine protection, reducing HP loss from the first harmful event.',
-    effect: 'First dangerous event: HP damage reduced by 50%.',
+    label: '護盾之光',
+    description: '隊伍在神聖護盾的庇護下出發，減少首個危險事件造成的體力損失。',
+    effect: '首個危險事件：體力傷害降低50%。',
   },
   {
     id: 'healing_grace',
-    label: 'Healing Grace',
-    description: 'Mira\'s healing is supernaturally potent at expedition start.',
-    effect: 'All party members start with +15 HP and –10 stress.',
+    label: '治癒恩典',
+    description: '在探險開始時，米拉的治癒力量獲得超自然的強化。',
+    effect: '所有隊員起始體力+15，壓力−10。',
   },
   {
     id: 'guiding_omen',
-    label: 'Guiding Omen',
-    description: 'The god\'s first Omen intervention is free.',
-    effect: 'First Omen use costs 0 divine power.',
+    label: '引導神諭',
+    description: '神明的第一次神諭干預免費使用。',
+    effect: '首次使用神諭消耗0點神力。',
   },
 ] as const;

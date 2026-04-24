@@ -3,62 +3,62 @@ import type { ExpeditionNode } from '../types';
 export const EXPEDITION_NODES: ExpeditionNode[] = [
   {
     id: 'entrance',
-    name: 'Graveyard Entrance',
+    name: '墓地入口',
     description:
-      'Rusted iron gates creak as the party enters. Crumbling tombstones stretch in every direction. The fog is thin here, but it will thicken.',
+      '生鏽的鐵門在隊伍入內時嘎嘎作響。殘破的墓碑向四面八方延伸。這裡的霧氣尚稀薄，但它很快便會濃厚起來。',
     position: 0,
     icon: '🚪',
   },
   {
     id: 'outer_graves',
-    name: 'Outer Graves',
+    name: '外圍墓區',
     description:
-      'The outer cemetery is less disturbed — bones sealed in stone. A ravine cuts the shortest path.',
+      '外圍的墓園較少受到擾動——骸骨封存於石棺之中。一道峽谷橫截了最短的路徑。',
     eventId: 'collapsed_bridge',
     position: 1,
     icon: '⚰️',
   },
   {
     id: 'fork',
-    name: 'Fork in the Path',
+    name: '岔路口',
     description:
-      'Two weathered trails diverge through ancient yew trees. The left is narrower; both lead deeper.',
+      '兩條古老紫杉樹間的風化小徑在此分岔。左側路徑更為狹窄；兩條路都通往更深處。',
     eventId: 'wounded_gravekeeper',
     position: 2,
     icon: '🌿',
   },
   {
     id: 'chapel',
-    name: 'Abandoned Chapel',
+    name: '廢棄禮拜堂',
     description:
-      'A crumbling stone chapel stands in a clearing. Its side crypt door is ajar. Something glints inside.',
+      '一座搖搖欲墜的石砌禮拜堂矗立於空地之中。側邊的地下墓室門扉虛掩。裡面有什麼東西在閃閃發光。',
     eventId: 'glittering_vault',
     position: 3,
     icon: '⛪',
   },
   {
     id: 'deep_altar',
-    name: 'Deep Altar',
+    name: '深處祭壇',
     description:
-      'An open-air altar ringed with standing stones marks the heart of the old graveyard. The dead are restless here.',
+      '一座環繞著立石的露天祭壇，標誌著古老墓地的核心。死者在此地躁動不安。',
     eventId: 'restless_dead_ambush',
     position: 4,
     icon: '🪨',
   },
   {
     id: 'relic_chamber',
-    name: 'Relic Chamber',
+    name: '神器密室',
     description:
-      'A barrow mound conceals a stone chamber. The sacred relic pulses with faint light from within — but so does the guardian.',
+      '一座土丘掩蓋著一間石室。神聖神器從內部發出微弱的光芒——但守衛亦然。',
     eventId: 'chamber_guardian',
     position: 5,
     icon: '💀',
   },
   {
     id: 'escape',
-    name: 'The Escape',
+    name: '撤離之路',
     description:
-      'The mission\'s end approaches. The graveyard grows hostile. One final choice remains before the party reaches safety.',
+      '任務即將走向終點。墓地愈發充滿敵意。在隊伍抵達安全之地前，最後一個抉擇仍等待著他們。',
     eventId: 'escape_route',
     position: 6,
     icon: '🌅',

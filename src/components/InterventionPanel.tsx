@@ -18,22 +18,22 @@ interface InterventionDef {
 const DEFS: InterventionDef[] = [
   {
     type: 'omen',
-    label: 'Send Omen',
-    shortDesc: 'Nudge party toward an option. Select option after clicking.',
+    label: '發送神諭',
+    shortDesc: '引導隊伍傾向某個選項。點擊後請選擇目標選項。',
     cost: 1,
     icon: '👁',
   },
   {
     type: 'blessing',
-    label: 'Bestow Blessing',
-    shortDesc: 'Strengthen unity. Party votes are more cohesive this round.',
+    label: '賜予祝福',
+    shortDesc: '增強凝聚力。本回合隊伍投票更為一致。',
     cost: 1,
     icon: '✦',
   },
   {
     type: 'miracle',
-    label: 'Invoke Miracle',
-    shortDesc: 'Heal all (+20 HP, −20 stress). Powerful but costly.',
+    label: '施展奇蹟',
+    shortDesc: '治癒全體（+20 體力，−20 壓力）。強大但耗費高昂。',
     cost: 2,
     icon: '⚡',
   },
@@ -72,7 +72,7 @@ export default function InterventionPanel({
               disabled={disabled}
               onClick={() => {
                 if (def.type === 'omen') {
-                  // Omen requires selecting an option — we trigger a prompt via parent
+                  // 神諭需要選擇目標選項 — 透過父元件觸發提示
                   onIntervene('omen');
                 } else {
                   onIntervene(def.type);
@@ -98,10 +98,10 @@ export default function InterventionPanel({
                     : 'bg-gray-700 text-gray-400'
                 }`}
               >
-                {effectiveCost === 0 ? 'FREE' : `${effectiveCost}⚡`}
+                {effectiveCost === 0 ? '免費' : `${effectiveCost}⚡`}
               </span>
               {alreadyActive && (
-                <span className="text-xs text-violet-400">Active</span>
+                <span className="text-xs text-violet-400">已啟動</span>
               )}
             </button>
 
@@ -110,12 +110,12 @@ export default function InterventionPanel({
               {def.shortDesc}
               {def.type === 'omen' && currentEvent && (
                 <div className="mt-1 text-gray-500">
-                  Options: {currentEvent.options.map((o) => o.label).join(', ')}
+                  選項：{currentEvent.options.map((o) => o.label).join('、')}
                 </div>
               )}
               {firstOmenFree && def.type === 'omen' && (
                 <div className="mt-1 text-green-400">
-                  Guiding Omen: first use is free!
+                  「引導神諭」：第一次使用免費！
                 </div>
               )}
             </div>

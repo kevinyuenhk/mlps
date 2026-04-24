@@ -1,5 +1,5 @@
 import type { Adventurer } from '../types';
-import { characterClassIcon, hpColor, stressColor } from '../utils/helpers';
+import { characterClassIcon, classDisplayName, hpColor, stressColor, traitDisplayName } from '../utils/helpers';
 
 interface Props {
   party: Adventurer[];
@@ -34,7 +34,7 @@ function CharacterRow({ a }: { a: Adventurer }) {
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-baseline">
             <span className="text-sm font-medium text-gray-100 truncate">{a.name}</span>
-            <span className="text-xs text-gray-500 ml-1">{a.class}</span>
+            <span className="text-xs text-gray-500 ml-1">{classDisplayName(a.class)}</span>
           </div>
         </div>
         {!a.alive && <span className="text-xs text-red-400 shrink-0">✗</span>}
@@ -43,24 +43,24 @@ function CharacterRow({ a }: { a: Adventurer }) {
       <div className="flex flex-wrap gap-1 mb-2">
         {a.traits.map((t) => (
           <span key={t} className="text-xs px-1.5 py-0.5 rounded bg-gray-700 text-gray-400">
-            {t}
+            {traitDisplayName(t)}
           </span>
         ))}
       </div>
 
       <div className="space-y-1.5">
         <div className="grid grid-cols-[40px_1fr_32px] items-center gap-1 text-xs text-gray-500">
-          <span>HP</span>
+          <span>體力</span>
           <MiniBar value={a.hp} max={a.maxHp} colorClass={hpColor(a.hp, a.maxHp)} />
           <span className="text-right">{a.hp}</span>
         </div>
         <div className="grid grid-cols-[40px_1fr_32px] items-center gap-1 text-xs text-gray-500">
-          <span>Stress</span>
+          <span>壓力</span>
           <MiniBar value={a.stress} max={100} colorClass={stressColor(a.stress)} />
           <span className="text-right">{a.stress}</span>
         </div>
         <div className="grid grid-cols-[40px_1fr_32px] items-center gap-1 text-xs text-gray-500">
-          <span>Faith</span>
+          <span>信仰</span>
           <MiniBar value={a.faith} max={100} colorClass="bg-violet-500" />
           <span className="text-right">{a.faith}</span>
         </div>
@@ -74,12 +74,12 @@ export default function PartyPanel({ party, divinePower, maxDivinePower }: Props
 
   return (
     <div className="panel flex flex-col h-full overflow-hidden">
-      <div className="panel-header">Party</div>
+      <div className="panel-header">隊伍</div>
 
       {/* Divine Power */}
       <div className="px-4 py-3 border-b border-gray-700">
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs text-gray-500">Divine Power</span>
+          <span className="text-xs text-gray-500">神力</span>
           <span className="text-xs text-amber-400 font-semibold">
             {divinePower} / {maxDivinePower}
           </span>
