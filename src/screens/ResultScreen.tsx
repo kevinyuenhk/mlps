@@ -9,8 +9,6 @@ import {
   hpColor,
   stressColor,
   characterClassIcon,
-  goalLabel,
-  priorityLabel,
 } from '../utils/helpers';
 import OracleSummary from '../components/OracleSummary';
 
@@ -23,7 +21,6 @@ export default function ResultScreen({ state, onRestart }: Props) {
   const missionResult = evaluateMissionResult(state);
   const alignmentRate = countDivineAlignmentRate(state);
   const survivors = state.party.filter((a) => a.alive);
-  const fallen = state.party.filter((a) => !a.alive);
 
   const resultBg = {
     success: 'from-green-950 via-gray-950 to-gray-950',
@@ -34,14 +31,14 @@ export default function ResultScreen({ state, onRestart }: Props) {
   return (
     <div className={`min-h-screen flex flex-col bg-gradient-to-b ${resultBg}`}>
       {/* Header */}
-      <div className="border-b border-gray-800 px-6 py-8 text-center">
-        <div className="text-5xl mb-3">
+      <div className="border-b border-gray-800 px-4 sm:px-6 py-6 sm:py-8 text-center">
+        <div className="text-4xl sm:text-5xl mb-3">
           {missionResult === 'success' ? '🏆' : missionResult === 'partial' ? '⚖️' : '💀'}
         </div>
-        <h1 className={`text-4xl font-bold mb-2 ${missionResultColor(missionResult)}`}>
+        <h1 className={`text-3xl sm:text-4xl font-bold mb-2 ${missionResultColor(missionResult)}`}>
           {missionResultLabel(missionResult)}
         </h1>
-        <p className="text-gray-400 text-sm">
+        <p className="text-gray-400 text-sm max-w-md mx-auto">
           {missionResult === 'success'
             ? 'The relic has been recovered. Your followers proved worthy.'
             : missionResult === 'partial'
@@ -50,10 +47,10 @@ export default function ResultScreen({ state, onRestart }: Props) {
         </p>
       </div>
 
-      <div className="flex-1 p-6 max-w-5xl mx-auto w-full space-y-6">
+      <div className="flex-1 p-4 sm:p-6 max-w-5xl mx-auto w-full space-y-4 sm:space-y-6">
 
         {/* Quick stats row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           {[
             {
               label: 'Relic Status',
@@ -76,15 +73,15 @@ export default function ResultScreen({ state, onRestart }: Props) {
               color: 'text-violet-400',
             },
           ].map((stat) => (
-            <div key={stat.label} className="panel p-4 text-center">
-              <div className={`text-2xl font-bold ${stat.color} mb-1`}>{stat.value}</div>
+            <div key={stat.label} className="panel p-3 sm:p-4 text-center">
+              <div className={`text-xl sm:text-2xl font-bold ${stat.color} mb-1`}>{stat.value}</div>
               <div className="text-xs text-gray-500">{stat.label}</div>
             </div>
           ))}
         </div>
 
         {/* Two-column layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
 
           {/* Party outcomes */}
           <div className="panel p-4">
@@ -93,9 +90,6 @@ export default function ResultScreen({ state, onRestart }: Props) {
             </h2>
             <div className="space-y-4">
               {state.party.map((char) => {
-                const pool = state.resolutions.flatMap((r) =>
-                  r.characterDecisions.filter((cd) => cd.characterId === char.id)
-                );
                 const followedCount = state.resolutions.filter(
                   (r) =>
                     r.characterDecisions.find((cd) => cd.characterId === char.id)
@@ -164,11 +158,11 @@ export default function ResultScreen({ state, onRestart }: Props) {
                       </div>
                     </div>
 
-                    <div className="flex gap-4 text-xs text-gray-500">
+                    <div className="flex flex-wrap gap-3 text-xs text-gray-500">
                       <span>Faith: <span className="text-violet-400">{char.faith}</span></span>
                       <span>Loyalty: <span className="text-amber-400">{char.loyalty}</span></span>
                       <span>
-                        Agreement with party:{' '}
+                        Agreement:{' '}
                         <span className={alligmentPct >= 60 ? 'text-green-400' : 'text-amber-400'}>
                           {alligmentPct}%
                         </span>
@@ -229,7 +223,7 @@ export default function ResultScreen({ state, onRestart }: Props) {
               <h2 className="text-sm font-semibold uppercase tracking-widest text-gray-500 mb-3">
                 Divine Power Remaining
               </h2>
-              <div className="flex gap-1.5">
+              <div className="flex flex-wrap gap-1.5 items-center">
                 {Array.from({ length: state.maxDivinePower }, (_, i) => (
                   <div
                     key={i}
@@ -240,7 +234,7 @@ export default function ResultScreen({ state, onRestart }: Props) {
                     }`}
                   />
                 ))}
-                <span className="text-xs text-gray-500 ml-2">
+                <span className="text-xs text-gray-500 ml-1">
                   {state.divinePower} / {state.maxDivinePower} unspent
                 </span>
               </div>
@@ -351,7 +345,7 @@ export default function ResultScreen({ state, onRestart }: Props) {
 
         {/* Restart */}
         <div className="text-center py-4">
-          <button onClick={onRestart} className="btn-primary px-10 text-base">
+          <button onClick={onRestart} className="btn-primary px-10 text-base w-full sm:w-auto">
             Begin a New Run
           </button>
           <p className="text-xs text-gray-700 mt-3">

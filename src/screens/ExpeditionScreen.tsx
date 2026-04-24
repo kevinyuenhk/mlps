@@ -19,26 +19,23 @@ interface Props {
   onExpeditionComplete: () => void;
 }
 
+type MobileTab = 'party' | 'expedition' | 'log';
+
 export default function ExpeditionScreen({
   state,
   onStateChange,
   onExpeditionComplete,
 }: Props) {
   const [selectingOmen, setSelectingOmen] = useState(false);
-  // True while showing the resolution of the most recent event (before advancing)
   const [eventResolved, setEventResolved] = useState(false);
+  const [mobileTab, setMobileTab] = useState<MobileTab>('expedition');
 
   const currentNode = state.nodes[state.currentNodeIndex];
   const currentEvent = currentNode?.eventId ? getEventById(currentNode.eventId) : null;
 
-  // The resolution for the current node's event (shown after resolving)
   const currentResolution = eventResolved
     ? state.resolutions.find((r) => r.eventId === currentNode?.eventId) ?? null
     : null;
-
-  // ─────────────────────────────────────────────────────────────
-  // Interventions
-  // ─────────────────────────────────────────────────────────────
 
   function handleIntervene(type: InterventionType, optionId?: string) {
     if (type === 'omen' && !optionId) {
@@ -54,11 +51,6 @@ export default function ExpeditionScreen({
     handleIntervene('omen', optionId);
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // Event resolution — resolves the current event but stays on the same node
-  // so the player can see the outcome before advancing.
-  // ─────────────────────────────────────────────────────────────
-
   const handleResolve = useCallback(() => {
     if (!currentEvent) return;
     const next = resolveCurrentEvent(state);
@@ -66,10 +58,6 @@ export default function ExpeditionScreen({
     setEventResolved(true);
     setSelectingOmen(false);
   }, [state, currentEvent, onStateChange]);
-
-  // ─────────────────────────────────────────────────────────────
-  // Advance to the next node (after viewing resolution, or from entrance/non-event)
-  // ─────────────────────────────────────────────────────────────
 
   function handleAdvance() {
     setEventResolved(false);
@@ -83,24 +71,20 @@ export default function ExpeditionScreen({
     }
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // Entrance node: no event, just advance into the graveyard
-  // ─────────────────────────────────────────────────────────────
-
   const isEntranceNode = currentNode?.id === 'entrance';
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-gray-950">
+    <div className="h-[100dvh] flex flex-col overflow-hidden bg-gray-950">
       {/* Top bar: node map */}
-      <div className="border-b border-gray-700 bg-gray-900 px-4 py-2 shrink-0">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 shrink-0">
+      <div className="border-b border-gray-700 bg-gray-900 px-3 md:px-4 py-2 shrink-0">
+        <div className="flex items-center gap-2 md:gap-4">
+          <div className="hidden sm:flex items-center gap-2 shrink-0">
             <div className="text-xs text-gray-500 uppercase tracking-wide whitespace-nowrap">
               Abandoned Graveyard
             </div>
             {state.relicRecovered && (
               <span className="text-xs px-2 py-0.5 rounded bg-amber-900 text-amber-300 border border-amber-700">
-                ✓ Relic Secured
+                ✓ Relic
               </span>
             )}
           </div>
@@ -113,8 +97,13 @@ export default function ExpeditionScreen({
       {/* Main body */}
       <div className="flex-1 flex overflow-hidden min-h-0">
 
-        {/* LEFT: Party panel */}
-        <div className="w-60 shrink-0 border-r border-gray-700 flex flex-col overflow-hidden">
+        {/* LEFT: Party panel — desktop always, mobile only when tab=party */}
+        <div
+          className={[
+            mobileTab === 'party' ? 'flex' : 'hidden',
+            'md:flex flex-col w-full md:w-60 shrink-0 md:border-r border-gray-700 overflow-hidden',
+          ].join(' ')}
+        >
           <PartyPanel
             party={state.party}
             divinePower={state.divinePower}
@@ -122,11 +111,15 @@ export default function ExpeditionScreen({
           />
         </div>
 
-        {/* CENTER: Event + node info */}
-        <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-
+        {/* CENTER: Event + node info — desktop always, mobile only when tab=expedition */}
+        <div
+          className={[
+            mobileTab === 'expedition' ? 'flex' : 'hidden',
+            'md:flex flex-1 flex-col overflow-hidden min-w-0',
+          ].join(' ')}
+        >
           {/* Node description bar */}
-          <div className="border-b border-gray-700 px-5 py-2.5 bg-gray-900/50 shrink-0">
+          <div className="border-b border-gray-700 px-4 py-2.5 bg-gray-900/50 shrink-0">
             <div className="flex items-center gap-2">
               <span className="text-lg">{currentNode?.icon}</span>
               <div>
@@ -169,7 +162,7 @@ export default function ExpeditionScreen({
               />
             )}
 
-            {/* EVENT: resolved — show outcome then Continue */}
+            {/* EVENT: resolved */}
             {!isEntranceNode && currentEvent && eventResolved && currentResolution && (
               <>
                 <EventModal
@@ -191,9 +184,9 @@ export default function ExpeditionScreen({
 
           {/* Intervention bar — only when event is pending */}
           {currentEvent && !eventResolved && (
-            <div className="border-t border-gray-700 px-4 py-3 bg-gray-900/50 shrink-0">
+            <div className="border-t border-gray-700 px-3 py-3 bg-gray-900/50 shrink-0">
               <div className="text-xs text-gray-600 text-center mb-2 uppercase tracking-wide">
-                Divine Interventions — act before the party decides
+                Divine Interventions
               </div>
               <InterventionPanel
                 state={state}
@@ -205,8 +198,13 @@ export default function ExpeditionScreen({
           )}
         </div>
 
-        {/* RIGHT: Log + Oracle */}
-        <div className="w-72 shrink-0 border-l border-gray-700 flex flex-col overflow-hidden">
+        {/* RIGHT: Log + Oracle — desktop always, mobile only when tab=log */}
+        <div
+          className={[
+            mobileTab === 'log' ? 'flex' : 'hidden',
+            'md:flex flex-col w-full md:w-72 shrink-0 md:border-l border-gray-700 overflow-hidden',
+          ].join(' ')}
+        >
           <div className="flex-1 overflow-hidden">
             <ExpeditionLog entries={state.expeditionLog} />
           </div>
@@ -217,6 +215,31 @@ export default function ExpeditionScreen({
             </div>
           )}
         </div>
+      </div>
+
+      {/* Mobile bottom tab bar */}
+      <div className="md:hidden flex border-t border-gray-700 bg-gray-900 shrink-0">
+        {(
+          [
+            { id: 'party', icon: '👥', label: '隊伍' },
+            { id: 'expedition', icon: '⚔️', label: '探險' },
+            { id: 'log', icon: '📜', label: '日誌' },
+          ] as { id: MobileTab; icon: string; label: string }[]
+        ).map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setMobileTab(tab.id)}
+            className={[
+              'flex-1 py-2.5 flex flex-col items-center gap-0.5 text-xs transition-colors',
+              mobileTab === tab.id
+                ? 'text-amber-400 bg-gray-800'
+                : 'text-gray-500 hover:text-gray-400',
+            ].join(' ')}
+          >
+            <span className="text-base">{tab.icon}</span>
+            <span>{tab.label}</span>
+          </button>
+        ))}
       </div>
     </div>
   );

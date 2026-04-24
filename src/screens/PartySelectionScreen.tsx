@@ -23,9 +23,9 @@ export default function PartySelectionScreen({ onConfirm }: Props) {
   const canContinue = selected.length === MAX_PARTY;
 
   return (
-    <div className="min-h-screen flex flex-col p-6 gap-6">
+    <div className="min-h-screen flex flex-col p-4 sm:p-6 gap-4 sm:gap-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
           <div className="text-xs uppercase tracking-widest text-gray-500 mb-1">Temple of Awakening</div>
           <h1 className="text-2xl font-bold text-gray-100">Summon Your Party</h1>
@@ -35,7 +35,7 @@ export default function PartySelectionScreen({ onConfirm }: Props) {
         </div>
 
         {/* Mission summary */}
-        <div className="panel p-4 text-sm shrink-0 w-64">
+        <div className="panel p-4 text-sm w-full sm:w-64 sm:shrink-0">
           <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">Mission</div>
           <div className="font-semibold text-amber-300 mb-1">Recover the Sacred Relic</div>
           <div className="text-gray-500 text-xs leading-relaxed">
@@ -47,7 +47,7 @@ export default function PartySelectionScreen({ onConfirm }: Props) {
       </div>
 
       {/* Party slot indicators */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
         <span className="text-sm text-gray-500">Party slots:</span>
         {Array.from({ length: MAX_PARTY }, (_, i) => {
           const member = selected[i]
@@ -87,7 +87,7 @@ export default function PartySelectionScreen({ onConfirm }: Props) {
       {/* Trait legend */}
       <div className="panel p-3">
         <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">Trait Guide</div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-4 gap-y-1 text-xs text-gray-500">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-x-4 gap-y-1 text-xs text-gray-500">
           {[
             ['Brave', 'Rushes danger; avoids retreat'],
             ['Loyal', 'Mission-focused; votes carry weight'],
@@ -118,7 +118,7 @@ export default function PartySelectionScreen({ onConfirm }: Props) {
         <button
           disabled={!canContinue}
           onClick={() => onConfirm(selected)}
-          className="btn-primary px-8"
+          className="btn-primary px-6 sm:px-8 w-full sm:w-auto"
         >
           {canContinue
             ? `Continue with ${selected.map((id) => ADVENTURER_POOL.find((a) => a.id === id)?.name).join(', ')}`

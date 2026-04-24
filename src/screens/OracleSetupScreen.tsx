@@ -79,7 +79,7 @@ export default function OracleSetupScreen({ party, onConfirm }: Props) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col p-6 gap-6">
+    <div className="min-h-screen flex flex-col p-4 sm:p-6 gap-4 sm:gap-6">
       <div>
         <div className="text-xs uppercase tracking-widest text-gray-500 mb-1">Oracle Chamber</div>
         <h1 className="text-2xl font-bold text-gray-100">Define Your Divine Intent</h1>
@@ -88,9 +88,9 @@ export default function OracleSetupScreen({ party, onConfirm }: Props) {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 flex-1">
         {/* LEFT: Oracle config form */}
-        <div className="lg:col-span-2 space-y-5">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-5">
 
           {/* A. Primary Goal */}
           <div className="panel p-4">
@@ -252,7 +252,7 @@ export default function OracleSetupScreen({ party, onConfirm }: Props) {
       </div>
 
       <div className="flex justify-end">
-        <button onClick={handleConfirm} className="btn-primary px-8 text-base">
+        <button onClick={handleConfirm} className="btn-primary px-8 text-base w-full sm:w-auto">
           Begin Expedition
         </button>
       </div>
