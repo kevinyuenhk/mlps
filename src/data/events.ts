@@ -17,7 +17,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'high',
         baseWeight: 0.5,
         signalAlignment: { aggression: 1, missionFocus: 0.5 },
-        intentLabel: 'Forward',
+        intentLabel: '突進',
         intentIcon: '⚔️',
         traitBonuses: {
           Brave: 0.55,
@@ -45,7 +45,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'medium',
         baseWeight: 0.57,
         signalAlignment: { survivalPriority: 0.6, aggression: 0.3, missionFocus: 0.5 },
-        intentLabel: 'Guard',
+        intentLabel: '守護',
         intentIcon: '🛡️',
         traitBonuses: {
           Rational: 0.4,
@@ -73,7 +73,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'low',
         baseWeight: 0.3,
         signalAlignment: { survivalPriority: 0.8, stealthPreference: 0.5 },
-        intentLabel: 'Evade',
+        intentLabel: '迴避',
         intentIcon: '🌫️',
         traitBonuses: {
           Fearful: 0.45,
@@ -111,7 +111,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'medium',
         baseWeight: 0.55,
         signalAlignment: { urgency: 0.5, survivalPriority: 0.4, missionFocus: 0.4 },
-        intentLabel: 'Steady',
+        intentLabel: '穩步',
         intentIcon: '👣',
         traitBonuses: {
           Brave: 0.25,
@@ -138,7 +138,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'low',
         baseWeight: 0.46,
         signalAlignment: { survivalPriority: 0.9, stealthPreference: 0.5 },
-        intentLabel: 'Secure',
+        intentLabel: '確保',
         intentIcon: '🧭',
         traitBonuses: {
           Wary: 0.4,
@@ -165,7 +165,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'high',
         baseWeight: 0.34,
         signalAlignment: { urgency: 0.9, aggression: 0.4, missionFocus: 0.5 },
-        intentLabel: 'Forward',
+        intentLabel: '突進',
         intentIcon: '⚡',
         traitBonuses: {
           Brave: 0.4,
@@ -204,7 +204,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'low',
         baseWeight: 0.5,
         signalAlignment: { mercyPriority: 1, survivalPriority: 0.3, missionFocus: 0.3 },
-        intentLabel: 'Aid',
+        intentLabel: '救援',
         intentIcon: '💉',
         traitBonuses: {
           Compassionate: 0.55,
@@ -230,7 +230,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'low',
         baseWeight: 0.55,
         signalAlignment: { missionFocus: 0.6, stealthPreference: 0.4, urgency: 0.4 },
-        intentLabel: 'Scout',
+        intentLabel: '偵察',
         intentIcon: '🗺️',
         traitBonuses: {
           Clever: 0.45,
@@ -256,7 +256,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'low',
         baseWeight: 0.35,
         signalAlignment: { missionFocus: 0.8, urgency: 0.7 },
-        intentLabel: 'Forward',
+        intentLabel: '突進',
         intentIcon: '➡️',
         traitBonuses: {
           Skeptical: 0.2,
@@ -294,7 +294,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'medium',
         baseWeight: 0.3,
         signalAlignment: { greedAllowance: 1 },
-        intentLabel: 'Plunder',
+        intentLabel: '掠奪',
         intentIcon: '💰',
         traitBonuses: {
           Greedy: 0.65,
@@ -322,7 +322,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'low',
         baseWeight: 0.56,
         signalAlignment: { missionFocus: 0.5, greedAllowance: 0.3, stealthPreference: 0.6 },
-        intentLabel: 'Scout',
+        intentLabel: '偵察',
         intentIcon: '🔎',
         traitBonuses: {
           Clever: 0.4,
@@ -349,7 +349,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'low',
         baseWeight: 0.5,
         signalAlignment: { missionFocus: 1, urgency: 0.5 },
-        intentLabel: 'Focus',
+        intentLabel: '專注',
         intentIcon: '🎯',
         traitBonuses: {
           Loyal: 0.3,
@@ -386,7 +386,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'low',
         baseWeight: 0.58,
         signalAlignment: { mercyPriority: 0.4, survivalPriority: 0.4, missionFocus: 0.3 },
-        intentLabel: 'Pray',
+        intentLabel: '祈禱',
         intentIcon: '✨',
         traitBonuses: {
           Devout: 0.45,
@@ -412,7 +412,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'medium',
         baseWeight: 0.48,
         signalAlignment: { aggression: 0.5, missionFocus: 0.4, survivalPriority: 0.2 },
-        intentLabel: 'Cleanse',
+        intentLabel: '淨化',
         intentIcon: '🔥',
         traitBonuses: {
           Brave: 0.15,
@@ -438,7 +438,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'low',
         baseWeight: 0.42,
         signalAlignment: { urgency: 0.7, missionFocus: 0.5, stealthPreference: 0.3 },
-        intentLabel: 'Move',
+        intentLabel: '前進',
         intentIcon: '➡️',
         traitBonuses: {
           Skeptical: 0.25,
@@ -475,7 +475,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'medium',
         baseWeight: 0.52,
         signalAlignment: { stealthPreference: 0.8, missionFocus: 0.5, survivalPriority: 0.4 },
-        intentLabel: 'Scout',
+        intentLabel: '偵察',
         intentIcon: '🏹',
         traitBonuses: {
           Clever: 0.35,
@@ -501,7 +501,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'high',
         baseWeight: 0.38,
         signalAlignment: { aggression: 0.8, urgency: 0.5, greedAllowance: 0.3 },
-        intentLabel: 'Forward',
+        intentLabel: '突進',
         intentIcon: '💥',
         traitBonuses: {
           Brave: 0.35,
@@ -528,7 +528,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'low',
         baseWeight: 0.4,
         signalAlignment: { survivalPriority: 0.7, stealthPreference: 0.7, missionFocus: 0.4 },
-        intentLabel: 'Secure',
+        intentLabel: '確保',
         intentIcon: '🌫️',
         traitBonuses: {
           Wary: 0.35,
@@ -565,7 +565,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'high',
         baseWeight: 0.45,
         signalAlignment: { aggression: 0.9, missionFocus: 0.9 },
-        intentLabel: 'Forward',
+        intentLabel: '突進',
         intentIcon: '⚔️',
         traitBonuses: {
           Brave: 0.55,
@@ -593,7 +593,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'medium',
         baseWeight: 0.6,
         signalAlignment: { survivalPriority: 0.5, missionFocus: 0.8, urgency: 0.3 },
-        intentLabel: 'Tactic',
+        intentLabel: '戰術',
         intentIcon: '♟️',
         traitBonuses: {
           Clever: 0.45,
@@ -619,7 +619,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'low',
         baseWeight: 0.2,
         signalAlignment: { survivalPriority: 0.95 },
-        intentLabel: 'Evade',
+        intentLabel: '迴避',
         intentIcon: '↩️',
         traitBonuses: {
           Fearful: 0.45,
@@ -658,7 +658,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'low',
         baseWeight: 0.5,
         signalAlignment: { survivalPriority: 0.9, urgency: 0.8 },
-        intentLabel: 'Escape',
+        intentLabel: '逃脫',
         intentIcon: '🚪',
         traitBonuses: {
           Wary: 0.3,
@@ -685,7 +685,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'low',
         baseWeight: 0.56,
         signalAlignment: { mercyPriority: 1, survivalPriority: 0.6 },
-        intentLabel: 'Aid',
+        intentLabel: '救援',
         intentIcon: '🫱',
         traitBonuses: {
           Compassionate: 0.5,
@@ -712,7 +712,7 @@ export const EVENTS: GameEvent[] = [
         riskLevel: 'medium',
         baseWeight: 0.3,
         signalAlignment: { greedAllowance: 0.6, missionFocus: 0.3, urgency: 0.5 },
-        intentLabel: 'Plunder',
+        intentLabel: '掠奪',
         intentIcon: '💰',
         traitBonuses: {
           Greedy: 0.45,

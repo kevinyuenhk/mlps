@@ -17,24 +17,24 @@ interface Props {
 }
 
 const PRIMARY_GOALS: Array<{ id: PrimaryGoal; label: string; note: string }> = [
-  { id: 'recover_relic', label: 'Recover Relic', note: 'Highest mission focus.' },
-  { id: 'rescue_survivors', label: 'Rescue', note: 'Mercy-first route.' },
-  { id: 'purge_corruption', label: 'Purge', note: 'More aggression, less restraint.' },
-  { id: 'scout_graveyard', label: 'Scout', note: 'Stealth and information bias.' },
+  { id: 'recover_relic', label: '奪回遺物', note: '最高任務專注。' },
+  { id: 'rescue_survivors', label: '救援', note: '慈悲優先路線。' },
+  { id: 'purge_corruption', label: '清除腐敗', note: '更強侵略性，更少克制。' },
+  { id: 'scout_graveyard', label: '偵察', note: '潛行與情報優先。' },
 ];
 
 const SECONDARY: Array<{ id: SecondaryPriority; label: string }> = [
-  { id: 'survival', label: 'Survival' },
-  { id: 'help_wounded', label: 'Aid' },
-  { id: 'avoid_conflict', label: 'Avoid Combat' },
-  { id: 'seek_wealth', label: 'Loot' },
-  { id: 'move_quickly', label: 'Speed' },
+  { id: 'survival', label: '求生' },
+  { id: 'help_wounded', label: '救助傷者' },
+  { id: 'avoid_conflict', label: '避免衝突' },
+  { id: 'seek_wealth', label: '搜刮' },
+  { id: 'move_quickly', label: '加速前進' },
 ];
 
 const BLESSINGS: Array<{ id: BlessingType; label: string; note: string }> = [
-  { id: 'shielding_light', label: 'Shielding Light', note: 'Half damage on the first damaging room.' },
-  { id: 'healing_grace', label: 'Healing Grace', note: 'Start healthier and calmer.' },
-  { id: 'guiding_omen', label: 'Guiding Omen', note: 'First omen is free.' },
+  { id: 'shielding_light', label: '護盾之光', note: '首個受傷房間傷害減半。' },
+  { id: 'healing_grace', label: '治癒恩典', note: '以更健康、更平靜的狀態出發。' },
+  { id: 'guiding_omen', label: '引導神諭', note: '首次神諭免費使用。' },
 ];
 
 export default function OracleSetupScreen({ party, onConfirm }: Props) {
@@ -77,15 +77,15 @@ export default function OracleSetupScreen({ party, onConfirm }: Props) {
     <div className="min-h-screen bg-[linear-gradient(180deg,#101319_0%,#0a0d12_100%)] px-4 py-6 sm:px-6">
       <div className="mx-auto flex max-w-7xl flex-col gap-6">
         <div>
-          <div className="text-xs uppercase tracking-[0.35em] text-stone-500">Oracle Setup</div>
-          <h1 className="mt-2 text-3xl font-semibold text-stone-100">Set the Run Signal</h1>
-          <p className="mt-2 text-sm text-stone-400">Compact inputs only. The party will interpret the signal through faith, class, state, and traits.</p>
+          <div className="text-xs uppercase tracking-[0.35em] text-stone-500">神諭設定</div>
+          <h1 className="mt-2 text-3xl font-semibold text-stone-100">設定突擊信號</h1>
+          <p className="mt-2 text-sm text-stone-400">簡化輸入。隊伍將透過信仰、職業、狀態和特質詮釋這些信號。</p>
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
           <div className="space-y-5">
             <section className="panel p-4">
-              <div className="mb-3 text-sm font-semibold text-stone-100">Primary Goal</div>
+              <div className="mb-3 text-sm font-semibold text-stone-100">主要目標</div>
               <div className="grid gap-3 sm:grid-cols-2">
                 {PRIMARY_GOALS.map((goal) => (
                   <button
@@ -108,8 +108,8 @@ export default function OracleSetupScreen({ party, onConfirm }: Props) {
 
             <section className="panel p-4">
               <div className="mb-3 flex items-center justify-between">
-                <div className="text-sm font-semibold text-stone-100">Secondary Priorities</div>
-                <div className="text-xs text-stone-500">Pick up to 2</div>
+                <div className="text-sm font-semibold text-stone-100">次要優先事項</div>
+                <div className="text-xs text-stone-500">最多選 2 項</div>
               </div>
               <div className="flex flex-wrap gap-2">
                 {SECONDARY.map((priority) => {
@@ -138,9 +138,11 @@ export default function OracleSetupScreen({ party, onConfirm }: Props) {
             </section>
 
             <section className="panel p-4">
-              <div className="mb-3 text-sm font-semibold text-stone-100">Risk Tolerance</div>
+              <div className="mb-3 text-sm font-semibold text-stone-100">風險容忍度</div>
               <div className="grid gap-3 sm:grid-cols-3">
-                {(['low', 'medium', 'high'] as RiskTolerance[]).map((risk) => (
+                {(['low', 'medium', 'high'] as RiskTolerance[]).map((risk) => {
+                  const riskLabel: Record<RiskTolerance, string> = { low: '低', medium: '中', high: '高' };
+                  return (
                   <button
                     key={risk}
                     type="button"
@@ -152,14 +154,15 @@ export default function OracleSetupScreen({ party, onConfirm }: Props) {
                         : 'border-stone-800 bg-stone-950/50 text-stone-400 hover:border-stone-600',
                     ].join(' ')}
                   >
-                    {risk}
+                    {riskLabel[risk]}
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </section>
 
             <section className="panel p-4">
-              <div className="mb-3 text-sm font-semibold text-stone-100">Starting Blessing</div>
+              <div className="mb-3 text-sm font-semibold text-stone-100">起始祝福</div>
               <div className="grid gap-3 sm:grid-cols-3">
                 {BLESSINGS.map((blessing) => (
                   <button
@@ -181,12 +184,12 @@ export default function OracleSetupScreen({ party, onConfirm }: Props) {
             </section>
 
             <section className="panel p-4">
-              <div className="mb-3 text-sm font-semibold text-stone-100">Addendum</div>
+              <div className="mb-3 text-sm font-semibold text-stone-100">附加指令</div>
               <textarea
                 rows={2}
                 value={addendumText}
                 onChange={(event) => setAddendumText(event.target.value.slice(0, 120))}
-                placeholder="Optional keywords: safe, fast, rescue, stealth, relic first..."
+                placeholder="選填關鍵字：安全、快速、救援、潛行、神器優先……"
                 className="w-full rounded-2xl border border-stone-700 bg-stone-950/70 px-4 py-3 text-sm text-stone-100 outline-none transition placeholder:text-stone-600 focus:border-amber-300/60"
               />
             </section>
@@ -194,12 +197,12 @@ export default function OracleSetupScreen({ party, onConfirm }: Props) {
 
           <div className="space-y-5">
             <div className="panel p-4">
-              <div className="mb-3 text-sm font-semibold text-stone-100">Oracle Readout</div>
+              <div className="mb-3 text-sm font-semibold text-stone-100">神諭讀數</div>
               <OracleSummary intent={intent} compact />
             </div>
 
             <div className="panel p-4">
-              <div className="mb-4 text-sm font-semibold text-stone-100">Party Interpretation</div>
+              <div className="mb-4 text-sm font-semibold text-stone-100">隊伍詮釋</div>
               <div className="space-y-3">
                 {interpretations.map(({ member, lines }) => (
                   <div key={member.id} className="rounded-2xl border border-stone-800 bg-stone-950/60 p-3">
