@@ -255,6 +255,16 @@ export interface MapDecoration {
   alpha?: number;
 }
 
+export interface WorldZone {
+  id: string;
+  name: string;
+  xStart: number;
+  xEnd: number;
+  bgColor: number;
+  accentColor: number;
+  type: RoomType;
+}
+
 export interface MapData {
   id: string;
   order: number;
@@ -277,6 +287,7 @@ export interface MapData {
   interactables: Interactable[];
   obstacles: MapObstacle[];
   decorations: MapDecoration[];
+  zones?: WorldZone[];
 }
 
 export interface MapLink {
