@@ -80,11 +80,11 @@ export default function ExpeditionScreen({
         <div className="flex items-center gap-2 md:gap-4">
           <div className="hidden sm:flex items-center gap-2 shrink-0">
             <div className="text-xs text-gray-500 uppercase tracking-wide whitespace-nowrap">
-              Abandoned Graveyard
+              荒廢墓地
             </div>
             {state.relicRecovered && (
               <span className="text-xs px-2 py-0.5 rounded bg-amber-900 text-amber-300 border border-amber-700">
-                ✓ Relic
+                ✓ 神器
               </span>
             )}
           </div>
@@ -97,7 +97,7 @@ export default function ExpeditionScreen({
       {/* Main body */}
       <div className="flex-1 flex overflow-hidden min-h-0">
 
-        {/* LEFT: Party panel — desktop always, mobile only when tab=party */}
+        {/* LEFT: Party panel */}
         <div
           className={[
             mobileTab === 'party' ? 'flex' : 'hidden',
@@ -111,7 +111,7 @@ export default function ExpeditionScreen({
           />
         </div>
 
-        {/* CENTER: Event + node info — desktop always, mobile only when tab=expedition */}
+        {/* CENTER: Event + node info */}
         <div
           className={[
             mobileTab === 'expedition' ? 'flex' : 'hidden',
@@ -136,16 +136,16 @@ export default function ExpeditionScreen({
             {isEntranceNode && (
               <div className="panel p-6 text-center animate-fade-in">
                 <div className="text-5xl mb-4">🚪</div>
-                <h2 className="text-xl font-bold text-gray-100 mb-2">The Gates Await</h2>
+                <h2 className="text-xl font-bold text-gray-100 mb-2">墓門待啟</h2>
                 <p className="text-gray-400 text-sm leading-relaxed mb-4 max-w-md mx-auto">
-                  Your party stands before the Abandoned Graveyard. Fog curls through the iron gates.
-                  The sacred relic waits somewhere in the depths.
+                  你的隊伍站在荒廢墓地前。霧氣穿過鐵門繚繞而上。
+                  神聖神器就在深處某處等待。
                 </p>
                 <p className="text-xs text-gray-600 mb-5">
-                  You have {state.divinePower} divine power. Use interventions before each event resolves.
+                  你有 {state.divinePower} 點神力。可在事件解決前使用干預。
                 </p>
                 <button onClick={handleAdvance} className="btn-primary">
-                  Enter the Graveyard
+                  進入墓地
                 </button>
               </div>
             )}
@@ -175,18 +175,18 @@ export default function ExpeditionScreen({
                 />
                 <button onClick={handleAdvance} className="btn-primary w-full">
                   {state.currentNodeIndex >= state.nodes.length - 1
-                    ? 'View Final Report'
-                    : 'Continue the Expedition →'}
+                    ? '查看最終報告'
+                    : '繼續遠征 →'}
                 </button>
               </>
             )}
           </div>
 
-          {/* Intervention bar — only when event is pending */}
+          {/* Intervention bar */}
           {currentEvent && !eventResolved && (
             <div className="border-t border-gray-700 px-3 py-3 bg-gray-900/50 shrink-0">
               <div className="text-xs text-gray-600 text-center mb-2 uppercase tracking-wide">
-                Divine Interventions
+                神聖干預
               </div>
               <InterventionPanel
                 state={state}
@@ -198,7 +198,7 @@ export default function ExpeditionScreen({
           )}
         </div>
 
-        {/* RIGHT: Log + Oracle — desktop always, mobile only when tab=log */}
+        {/* RIGHT: Log + Oracle */}
         <div
           className={[
             mobileTab === 'log' ? 'flex' : 'hidden',
@@ -210,7 +210,7 @@ export default function ExpeditionScreen({
           </div>
           {state.divinIntent && (
             <div className="border-t border-gray-700 p-3 shrink-0 max-h-64 overflow-y-auto">
-              <div className="text-xs uppercase tracking-wide text-gray-600 mb-2">Your Intent</div>
+              <div className="text-xs uppercase tracking-wide text-gray-600 mb-2">你的意圖</div>
               <OracleSummary intent={state.divinIntent} compact />
             </div>
           )}

@@ -40,10 +40,10 @@ export default function ResultScreen({ state, onRestart }: Props) {
         </h1>
         <p className="text-gray-400 text-sm max-w-md mx-auto">
           {missionResult === 'success'
-            ? 'The relic has been recovered. Your followers proved worthy.'
+            ? '神器已成功取回。你的信徒證明了自身價值。'
             : missionResult === 'partial'
-            ? 'Something was achieved — but the mission was not fully completed.'
-            : 'The expedition faltered. Your will went unheeded, or the cost was too great.'}
+            ? '取得了一些成果——但任務並未完全完成。'
+            : '遠征失敗了。你的意志未被遵從，或代價過於沉重。'}
         </p>
       </div>
 
@@ -53,22 +53,22 @@ export default function ResultScreen({ state, onRestart }: Props) {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           {[
             {
-              label: 'Relic Status',
-              value: state.relicRecovered ? 'Recovered' : 'Lost',
+              label: '神器狀態',
+              value: state.relicRecovered ? '已取回' : '已遺失',
               color: state.relicRecovered ? 'text-amber-400' : 'text-red-400',
             },
             {
-              label: 'Survivors',
+              label: '倖存者',
               value: `${survivors.length} / ${state.party.length}`,
               color: survivors.length > 0 ? 'text-green-400' : 'text-red-400',
             },
             {
-              label: 'Divine Alignment',
+              label: '神意契合度',
               value: `${Math.round(alignmentRate * 100)}%`,
               color: alignmentRate >= 0.6 ? 'text-amber-400' : 'text-gray-400',
             },
             {
-              label: 'Interventions Used',
+              label: '已用干預次數',
               value: `${state.interventionsUsed.length}`,
               color: 'text-violet-400',
             },
@@ -86,7 +86,7 @@ export default function ResultScreen({ state, onRestart }: Props) {
           {/* Party outcomes */}
           <div className="panel p-4">
             <h2 className="text-sm font-semibold uppercase tracking-widest text-gray-500 mb-4">
-              Party Outcomes
+              隊伍結局
             </h2>
             <div className="space-y-4">
               {state.party.map((char) => {
@@ -113,14 +113,13 @@ export default function ResultScreen({ state, onRestart }: Props) {
                         <span className="text-base">{characterClassIcon(char.class)}</span>
                         <div>
                           <span className="font-semibold text-gray-100">{char.name}</span>
-                          <span className="text-xs text-gray-500 ml-1">{char.class}</span>
                         </div>
                       </div>
                       <div className="text-right text-xs">
                         {char.alive ? (
-                          <span className="text-green-400">Survived</span>
+                          <span className="text-green-400">存活</span>
                         ) : (
-                          <span className="text-red-400">Fallen</span>
+                          <span className="text-red-400">陣亡</span>
                         )}
                       </div>
                     </div>
@@ -136,7 +135,7 @@ export default function ResultScreen({ state, onRestart }: Props) {
                     <div className="grid grid-cols-2 gap-2 text-xs mb-2">
                       <div>
                         <div className="flex justify-between text-gray-600 mb-0.5">
-                          <span>HP</span><span>{char.hp}/{char.maxHp}</span>
+                          <span>體力</span><span>{char.hp}/{char.maxHp}</span>
                         </div>
                         <div className="stat-bar-wrap">
                           <div
@@ -147,7 +146,7 @@ export default function ResultScreen({ state, onRestart }: Props) {
                       </div>
                       <div>
                         <div className="flex justify-between text-gray-600 mb-0.5">
-                          <span>Stress</span><span>{char.stress}</span>
+                          <span>壓力</span><span>{char.stress}</span>
                         </div>
                         <div className="stat-bar-wrap">
                           <div
@@ -159,10 +158,10 @@ export default function ResultScreen({ state, onRestart }: Props) {
                     </div>
 
                     <div className="flex flex-wrap gap-3 text-xs text-gray-500">
-                      <span>Faith: <span className="text-violet-400">{char.faith}</span></span>
-                      <span>Loyalty: <span className="text-amber-400">{char.loyalty}</span></span>
+                      <span>信仰: <span className="text-violet-400">{char.faith}</span></span>
+                      <span>忠誠: <span className="text-amber-400">{char.loyalty}</span></span>
                       <span>
-                        Agreement:{' '}
+                        契合度:{' '}
                         <span className={alligmentPct >= 60 ? 'text-green-400' : 'text-amber-400'}>
                           {alligmentPct}%
                         </span>
@@ -179,7 +178,7 @@ export default function ResultScreen({ state, onRestart }: Props) {
             {state.divinIntent && (
               <div className="panel p-4">
                 <h2 className="text-sm font-semibold uppercase tracking-widest text-gray-500 mb-3">
-                  Your Divine Intent
+                  你的神聖意圖
                 </h2>
                 <OracleSummary intent={state.divinIntent} compact />
               </div>
@@ -187,33 +186,33 @@ export default function ResultScreen({ state, onRestart }: Props) {
 
             <div className="panel p-4">
               <h2 className="text-sm font-semibold uppercase tracking-widest text-gray-500 mb-3">
-                Divine Influence Report
+                神聖影響報告
               </h2>
               <div className="space-y-2 text-xs">
                 <div className="flex gap-2">
-                  <span className="text-gray-500">Overall alignment:</span>
+                  <span className="text-gray-500">整體契合度：</span>
                   <span
                     className={alignmentRate >= 0.6 ? 'text-amber-400' : 'text-gray-400'}
                   >
-                    {Math.round(alignmentRate * 100)}% of decisions matched divine intent
+                    {Math.round(alignmentRate * 100)}% 的決策符合神意
                   </span>
                 </div>
                 {state.interventionsUsed.length > 0 && (
                   <div>
-                    <div className="text-gray-500 mb-1">Interventions used:</div>
+                    <div className="text-gray-500 mb-1">已使用的干預：</div>
                     <ul className="space-y-0.5 pl-2">
                       {state.interventionsUsed.map((iv, i) => (
                         <li key={i} className="text-gray-500">
-                          · {iv.type.charAt(0).toUpperCase() + iv.type.slice(1)}
-                          {iv.optionId ? ` (Omen → ${iv.optionId})` : ''}
-                          {' '}at node {iv.nodeIndex + 1}
+                          · {iv.type === 'omen' ? '神諭' : iv.type === 'blessing' ? '祝福' : '奇蹟'}
+                          {iv.optionId ? ` (神諭 → ${iv.optionId})` : ''}
+                          {' '}於第 {iv.nodeIndex + 1} 節點
                         </li>
                       ))}
                     </ul>
                   </div>
                 )}
                 <div className="text-gray-500">
-                  Starting blessing:{' '}
+                  起始祝福:{' '}
                   <span className="text-violet-400">{state.activeBlessing?.replace(/_/g, ' ')}</span>
                 </div>
               </div>
@@ -221,7 +220,7 @@ export default function ResultScreen({ state, onRestart }: Props) {
 
             <div className="panel p-4">
               <h2 className="text-sm font-semibold uppercase tracking-widest text-gray-500 mb-3">
-                Divine Power Remaining
+                剩餘神力
               </h2>
               <div className="flex flex-wrap gap-1.5 items-center">
                 {Array.from({ length: state.maxDivinePower }, (_, i) => (
@@ -235,20 +234,20 @@ export default function ResultScreen({ state, onRestart }: Props) {
                   />
                 ))}
                 <span className="text-xs text-gray-500 ml-1">
-                  {state.divinePower} / {state.maxDivinePower} unspent
+                  {state.divinePower} / {state.maxDivinePower} 未使用
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Timeline: key decisions */}
+        {/* Timeline */}
         <div className="panel p-4">
           <h2 className="text-sm font-semibold uppercase tracking-widest text-gray-500 mb-4">
-            Expedition Timeline
+            遠征時間線
           </h2>
           {state.resolutions.length === 0 ? (
-            <p className="text-gray-600 text-sm">No events resolved.</p>
+            <p className="text-gray-600 text-sm">無已解決的事件。</p>
           ) : (
             <div className="space-y-4">
               {state.resolutions.map((res, i) => {
@@ -265,16 +264,16 @@ export default function ResultScreen({ state, onRestart }: Props) {
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <div>
                         <span className="text-xs text-gray-600 mr-2">
-                          Event {i + 1} — {res.nodeName}
+                          事件 {i + 1} — {res.nodeName}
                         </span>
                         <span className="text-sm font-semibold text-gray-200">
                           {res.chosenOptionLabel}
                         </span>
                       </div>
                       {diverged ? (
-                        <span className="text-xs text-amber-500 shrink-0">⚠ Diverged</span>
+                        <span className="text-xs text-amber-500 shrink-0">⚠ 偏離</span>
                       ) : (
-                        <span className="text-xs text-green-600 shrink-0">✓ Aligned</span>
+                        <span className="text-xs text-green-600 shrink-0">✓ 契合</span>
                       )}
                     </div>
 
@@ -297,10 +296,10 @@ export default function ResultScreen({ state, onRestart }: Props) {
                           >
                             <span className="font-medium">{dec.characterName}</span>
                             {chose ? (
-                              <span className="text-green-600 ml-1">★ agreed</span>
+                              <span className="text-green-600 ml-1">★ 同意</span>
                             ) : (
                               <span className="text-amber-600 ml-1">
-                                · wanted{' '}
+                                · 想要{' '}
                                 {
                                   res.characterDecisions
                                     .find((d) => d.characterId === dec.characterId)
@@ -315,7 +314,7 @@ export default function ResultScreen({ state, onRestart }: Props) {
 
                     {res.interventionUsed && (
                       <div className="text-xs text-violet-400 mt-1">
-                        {res.interventionUsed === 'omen' ? '👁 Omen applied' : '✦ Blessing applied'}
+                        {res.interventionUsed === 'omen' ? '👁 神諭已施加' : '✦ 祝福已施加'}
                       </div>
                     )}
                   </div>
@@ -329,7 +328,7 @@ export default function ResultScreen({ state, onRestart }: Props) {
         {state.resolutions.some((r) => !r.followedDivineIntent) && (
           <div className="panel p-4 border-amber-800">
             <h2 className="text-sm font-semibold uppercase tracking-widest text-amber-600 mb-3">
-              ⚠ Notable Divergences from Divine Will
+              ⚠ 偏離神意的重大分歧
             </h2>
             <div className="space-y-2">
               {state.resolutions
@@ -346,10 +345,10 @@ export default function ResultScreen({ state, onRestart }: Props) {
         {/* Restart */}
         <div className="text-center py-4">
           <button onClick={onRestart} className="btn-primary px-10 text-base w-full sm:w-auto">
-            Begin a New Run
+            開始新的一局
           </button>
           <p className="text-xs text-gray-700 mt-3">
-            A different party, oracle, or intervention will produce a different story.
+            不同的隊伍、神諭或干預將產生不同的故事。
           </p>
         </div>
       </div>

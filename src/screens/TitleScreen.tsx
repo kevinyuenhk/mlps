@@ -17,27 +17,27 @@ export default function TitleScreen({ onStart }: Props) {
         {/* Title */}
         <div>
           <h1 className="text-4xl sm:text-5xl font-bold text-amber-400 tracking-tight mb-2 font-serif">
-            Divine Expedition
+            神聖遠征
           </h1>
           <p className="text-base sm:text-lg text-gray-400">
-            You are a newborn god.
+            你是一名初生的神明。
           </p>
         </div>
 
         {/* Tagline */}
         <div className="border border-gray-700 rounded-xl p-4 sm:p-5 bg-gray-900/60 backdrop-blur">
           <p className="text-gray-300 leading-relaxed text-sm sm:text-base">
-            Send followers into the haunted graveyard and recover the sacred relic.
-            You cannot puppeteer mortals — you can only guide, bless, and hope they obey.
+            派遣信徒深入鬧鬼墓地，取回神聖神器。
+            你無法操縱凡人——你只能引導、祝福，並祈求他們服從。
           </p>
         </div>
 
         {/* Three pillars */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-sm text-center w-full">
           {[
-            { icon: '🗣', label: 'Give Divine Commands', desc: 'Set intent via the Oracle' },
-            { icon: '👁', label: 'Watch & Understand', desc: 'Party interprets your will' },
-            { icon: '⚡', label: 'Intervene Sparingly', desc: 'Limited miracles remain' },
+            { icon: '🗣', label: '下達神諭', desc: '透過神諭設定意圖' },
+            { icon: '👁', label: '觀察與理解', desc: '隊伍會自行詮釋你的意志' },
+            { icon: '⚡', label: '謹慎干預', desc: '奇蹟次數有限' },
           ].map((p) => (
             <div key={p.label} className="panel p-3 flex sm:flex-col flex-row items-center gap-3 sm:gap-1 text-left sm:text-center">
               <span className="text-xl shrink-0">{p.icon}</span>
@@ -54,11 +54,11 @@ export default function TitleScreen({ onStart }: Props) {
           onClick={onStart}
           className="btn-primary text-base sm:text-lg px-10 py-3 w-full max-w-xs"
         >
-          Begin Your Reign
+          開始你的統治
         </button>
 
         <p className="text-xs text-gray-700">
-          One expedition · One run · ~10 minutes
+          一次遠征 · 一局遊戲 · 約10分鐘
         </p>
       </div>
     </div>

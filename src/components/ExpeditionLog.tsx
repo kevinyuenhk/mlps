@@ -23,7 +23,7 @@ export default function ExpeditionLog({ entries }: Props) {
 
   return (
     <div className="panel flex flex-col h-full overflow-hidden">
-      <div className="panel-header">Expedition Log</div>
+      <div className="panel-header">遠征日誌</div>
       <div className="flex-1 overflow-y-auto p-3 space-y-1.5 text-xs leading-relaxed">
         {entries.map((entry) => (
           <div
