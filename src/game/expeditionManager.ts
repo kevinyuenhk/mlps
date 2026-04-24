@@ -18,10 +18,6 @@ function makeLog(type: LogEntry['type'], text: string): LogEntry {
   return { id: `log-${++logIdCounter}`, timestamp: Date.now(), type, text };
 }
 
-// ─────────────────────────────────────────────────────────────────
-// Initial state construction
-// ─────────────────────────────────────────────────────────────────
-
 export function createInitialRunState(
   selectedIds: string[],
   intent: DivinIntent,
@@ -41,7 +37,7 @@ export function createInitialRunState(
   }
 
   const initialLog: LogEntry[] = [
-    makeLog('info', 'The expedition begins. Your party approaches the Abandoned Graveyard.'),
+    makeLog('info', '遠征開始。您的隊伍向荒廢墓地進發。'),
     makeLog('info', blessingStartText(blessing)),
   ];
 
@@ -69,17 +65,13 @@ export function createInitialRunState(
 function blessingStartText(blessing: BlessingType): string {
   switch (blessing) {
     case 'shielding_light':
-      return 'Shielding Light: divine protection surrounds the party — the first peril will hurt less.';
+      return '護盾之光：神聖庇護環繞全隊——第一次危難帶來的傷害將有所減輕。';
     case 'healing_grace':
-      return 'Healing Grace: divine warmth flows through the party, mending small wounds and steadying nerves.';
+      return '治癒恩典：神聖暖意流遍全隊，治癒了輕傷，也穩定了心神。';
     case 'guiding_omen':
-      return 'Guiding Omen: your first divine omen will cost nothing to send.';
+      return '引導神諭：您的第一次神聖神諭將免費使用。';
   }
 }
-
-// ─────────────────────────────────────────────────────────────────
-// Intervention
-// ─────────────────────────────────────────────────────────────────
 
 export function applyIntervention(
   state: RunState,
@@ -112,7 +104,7 @@ export function applyIntervention(
         activeOmenOptionId: targetOptionId ?? null,
         expeditionLog: [
           ...next.expeditionLog,
-          makeLog('intervention', 'Divine Omen: you send a sign nudging the party toward a specific path.'),
+          makeLog('intervention', '神聖神諭：您發出徵兆，引導隊伍走向特定道路。'),
         ],
       };
       break;
@@ -123,7 +115,7 @@ export function applyIntervention(
         activeBlessingBoost: true,
         expeditionLog: [
           ...next.expeditionLog,
-          makeLog('intervention', "Blessing bestowed: the party's resolve strengthens. Their unity improves for this moment."),
+          makeLog('intervention', '祝福降臨：隊伍的意志更加堅定。此刻他們的凝聚力有所提升。'),
         ],
       };
       break;
@@ -138,7 +130,7 @@ export function applyIntervention(
         })),
         expeditionLog: [
           ...next.expeditionLog,
-          makeLog('intervention', 'Miracle invoked: light descends. Wounds knit and stress dissolves (+20 HP, −20 stress).'),
+          makeLog('intervention', '奇蹟施展：光輝降臨。傷口癒合，壓力消散（+20 體力，−20 壓力）。'),
         ],
       };
       break;
@@ -147,11 +139,6 @@ export function applyIntervention(
 
   return next;
 }
-
-// ─────────────────────────────────────────────────────────────────
-// Event resolution — does NOT advance currentNodeIndex
-// Call advanceNode separately after showing the resolution to the player.
-// ─────────────────────────────────────────────────────────────────
 
 export function resolveCurrentEvent(state: RunState): RunState {
   const node = state.nodes[state.currentNodeIndex];
@@ -172,7 +159,6 @@ export function resolveCurrentEvent(state: RunState): RunState {
   const chosenOption = event.options.find((o) => o.id === result.winningOptionId)!;
   const outcome = chosenOption.outcome;
 
-  // Shielding Light halves HP loss on the first dangerous event
   const shieldActive =
     state.activeBlessing === 'shielding_light' &&
     state.resolutions.length === 0 &&
@@ -214,7 +200,7 @@ export function resolveCurrentEvent(state: RunState): RunState {
   };
 
   const logEntries: LogEntry[] = [
-    makeLog('event', `📍 ${node.name}: Party chose "${chosenOption.label}"`),
+    makeLog('event', `📍 ${node.name}：隊伍選擇了「${chosenOption.label}」`),
     makeLog('decision', narrativeLog),
     makeLog('outcome', outcome.narrativeResult),
   ];
@@ -231,13 +217,8 @@ export function resolveCurrentEvent(state: RunState): RunState {
     expeditionLog: [...state.expeditionLog, ...logEntries],
     activeOmenOptionId: null,
     activeBlessingBoost: false,
-    // currentNodeIndex is NOT changed here — call advanceNode after showing the resolution
   };
 }
-
-// ─────────────────────────────────────────────────────────────────
-// Advance to the next node (call this after showing event resolution)
-// ─────────────────────────────────────────────────────────────────
 
 export function advanceNode(state: RunState): RunState {
   const nextIndex = state.currentNodeIndex + 1;
@@ -245,8 +226,8 @@ export function advanceNode(state: RunState): RunState {
   const nextNode = state.nodes[nextIndex];
 
   const logText = nextNode
-    ? `The party moves on to: ${nextNode.name}. ${nextNode.description}`
-    : 'The party has cleared the graveyard.';
+    ? `隊伍向前推進至：${nextNode.name}。${nextNode.description}`
+    : '隊伍已清掃了整個墓地。';
 
   return {
     ...state,
@@ -255,10 +236,6 @@ export function advanceNode(state: RunState): RunState {
     expeditionLog: [...state.expeditionLog, makeLog('arrival', logText)],
   };
 }
-
-// ─────────────────────────────────────────────────────────────────
-// Final evaluation
-// ─────────────────────────────────────────────────────────────────
 
 export type MissionResult = 'success' | 'partial' | 'failure';
 
@@ -275,10 +252,6 @@ export function countDivineAlignmentRate(state: RunState): number {
   return aligned / state.resolutions.length;
 }
 
-// ─────────────────────────────────────────────────────────────────
-// Helper
-// ─────────────────────────────────────────────────────────────────
-
 function buildNarrativeLog(
   chosenLabel: string,
   result: ReturnType<typeof resolvePartyDecision>,
@@ -290,13 +263,13 @@ function buildNarrativeLog(
     .filter((cd) => cd.preferredOptionId !== result.winningOptionId)
     .map((cd) => cd.characterName);
 
-  let text = `Party chose: ${chosenLabel}.`;
+  let text = `隊伍選擇：${chosenLabel}。`;
   if (dissenters.length === 1) {
-    text += ` ${dissenters[0]} preferred a different approach but was outvoted.`;
+    text += ` ${dissenters[0]}傾向另一方案，但被多數決推翻。`;
   } else if (dissenters.length > 1) {
-    text += ` ${dissenters.join(' and ')} dissented but the majority held.`;
+    text += ` ${dissenters.join('與')}持不同意見，但多數仍占上風。`;
   } else {
-    text += ` The party was in agreement.`;
+    text += ` 隊伍一致同意。`;
   }
 
   return text;

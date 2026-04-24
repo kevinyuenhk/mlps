@@ -9,43 +9,11 @@ import type {
   ParsedSignals,
   TraitName,
 } from '../types';
+import { traitDisplayName, classDisplayName } from '../utils/helpers';
 
-/**
- * Decision Engine
- * ───────────────
- * For every event, this module computes each character's preference score
- * across all available options. Scores drive the party decision.
- *
- * Score formula:
- *   optionScore =
- *     baseOptionWeight
- *     + traitModifiers          (sum of traitBonuses for this character's traits)
- *     + divineAlignmentScore    (dot product of option signals × divine intent, scaled by faith)
- *     + stateModifiers          (HP, stress penalty/bonus)
- *     + classBias               (class tendencies)
- *     + interventionModifier    (Omen boost from player)
- *     + randomness              (small ±0.05 noise as tie-breaker only)
- *
- * HOW TO EXTEND:
- *   Add trait entries to traitBonuses in events.ts.
- *   Add class biases in CLASS_BIASES below.
- *   Increase/decrease randomness constant if desired.
- */
+const RANDOMNESS_RANGE = 0.05;
 
-const RANDOMNESS_RANGE = 0.05; // ±0.05 maximum random noise
-
-// ─────────────────────────────────────────────────────────────────
-// Class biases
-// ─────────────────────────────────────────────────────────────────
-
-/**
- * Per-class bonus for options that carry certain risk or type tags.
- * These represent trained instincts independent of divine guidance.
- */
-const CLASS_BIASES: Record<
-  AdventurerClass,
-  Record<string, number>
-> = {
+const CLASS_BIASES: Record<AdventurerClass, Record<string, number>> = {
   Knight: {
     fight_through: 0.25,
     press_attack: 0.25,
@@ -89,10 +57,6 @@ const CLASS_BIASES: Record<
   },
 };
 
-// ─────────────────────────────────────────────────────────────────
-// Trait modifiers
-// ─────────────────────────────────────────────────────────────────
-
 function computeTraitScore(
   traits: TraitName[],
   option: EventOption
@@ -104,23 +68,20 @@ function computeTraitScore(
     const bonus = option.traitBonuses[trait] ?? 0;
     if (bonus === 0) continue;
     score += bonus;
+    const name = traitDisplayName(trait);
     if (bonus >= 0.3) {
-      tags.push(`${trait} strongly favors this choice.`);
+      tags.push(`${name}強烈傾向此選擇。`);
     } else if (bonus >= 0.15) {
-      tags.push(`${trait} favors this choice.`);
+      tags.push(`${name}傾向此選擇。`);
     } else if (bonus <= -0.3) {
-      tags.push(`${trait} strongly resists this choice.`);
+      tags.push(`${name}強烈抗拒此選擇。`);
     } else if (bonus <= -0.15) {
-      tags.push(`${trait} resists this choice.`);
+      tags.push(`${name}抗拒此選擇。`);
     }
   }
 
   return { score, tags };
 }
-
-// ─────────────────────────────────────────────────────────────────
-// Divine intent alignment
-// ─────────────────────────────────────────────────────────────────
 
 function computeDivineAlignment(
   character: Adventurer,
@@ -129,40 +90,29 @@ function computeDivineAlignment(
 ): { score: number; tags: string[] } {
   const tags: string[] = [];
 
-  // Dot product: how much this option resonates with divine intent signals
   let rawAlignment = 0;
   for (const [key, weight] of Object.entries(option.signalAlignment)) {
     const intentValue = signals[key as keyof ParsedSignals] ?? 0;
     rawAlignment += intentValue * (weight as number);
   }
 
-  // Faith multiplier — more faith = stronger divine signal
   const faithMultiplier = character.faith / 100;
-
-  // Devout amplifies divine weight by 30%
   const devoutMult = character.traits.includes('Devout') ? 1.3 : 1.0;
-
-  // Skeptical halves divine influence
   const skepticMult = character.traits.includes('Skeptical') ? 0.5 : 1.0;
-
   const finalScore = rawAlignment * faithMultiplier * devoutMult * skepticMult * 0.7;
 
   if (rawAlignment > 0.3 && finalScore > 0.1) {
-    tags.push('This aligns with divine guidance.');
+    tags.push('此選擇符合神意指引。');
   }
   if (character.traits.includes('Devout') && rawAlignment > 0.2) {
-    tags.push('Devout faith amplifies the divine signal.');
+    tags.push('虔誠的信仰放大了神聖訊號。');
   }
   if (character.traits.includes('Skeptical')) {
-    tags.push('Skepticism dulls the pull of divine intent.');
+    tags.push('懷疑主義削弱了神意的牽引力。');
   }
 
   return { score: finalScore, tags };
 }
-
-// ─────────────────────────────────────────────────────────────────
-// State modifiers (HP, stress)
-// ─────────────────────────────────────────────────────────────────
 
 function computeStateModifiers(
   character: Adventurer,
@@ -174,45 +124,37 @@ function computeStateModifiers(
   const hpRatio = character.hp / character.maxHp;
   const stressRatio = character.stress / 100;
 
-  // Low HP increases caution
   if (option.riskLevel === 'high' && hpRatio < 0.4) {
     score -= 0.35;
-    tags.push('Low HP reduces willingness to risk further harm.');
+    tags.push('體力極低，令人不願再承受更多傷害。');
   } else if (option.riskLevel === 'high' && hpRatio < 0.6) {
     score -= 0.15;
-    tags.push('HP below half tempers the appetite for danger.');
+    tags.push('體力低於半數，對危險的渴望有所削減。');
   }
 
-  // Fragile trait extra penalty on high risk
   if (character.traits.includes('Fragile') && option.riskLevel === 'high') {
     score -= 0.2;
-    tags.push('Fragile constitution makes high-risk options unappealing.');
+    tags.push('脆弱的體質使高風險選項更難以承受。');
   }
 
-  // High stress pushes toward caution or retreat
   if (stressRatio > 0.7) {
     if (option.riskLevel === 'high') {
       score -= 0.2;
-      tags.push('High stress makes further danger feel overwhelming.');
+      tags.push('極高的壓力使進一步的危險令人難以承受。');
     }
     if (option.riskLevel === 'low') {
       score += 0.15;
-      tags.push('High stress increases desire for the safer path.');
+      tags.push('極高的壓力使安全路線更具吸引力。');
     }
   }
 
-  // Calm reduces stress penalties
   if (character.traits.includes('Calm') && stressRatio > 0.5) {
-    score += 0.1; // calm mitigates stress impact
-    tags.push('Calm disposition resists the pull of panic.');
+    score += 0.1;
+    tags.push('冷靜的性格抵擋了恐慌的侵蝕。');
   }
 
   return { score, tags };
 }
-
-// ─────────────────────────────────────────────────────────────────
-// Class bias
-// ─────────────────────────────────────────────────────────────────
 
 function computeClassBias(
   character: Adventurer,
@@ -222,18 +164,15 @@ function computeClassBias(
   const biases = CLASS_BIASES[character.class] ?? {};
   const bias = biases[option.id] ?? 0;
   if (Math.abs(bias) >= 0.15) {
+    const cls = classDisplayName(character.class);
     if (bias > 0) {
-      tags.push(`${character.class} training instinctively favors this approach.`);
+      tags.push(`${cls}的訓練本能地傾向這種做法。`);
     } else {
-      tags.push(`${character.class} training instinctively resists this approach.`);
+      tags.push(`${cls}的訓練本能地抗拒這種做法。`);
     }
   }
   return { score: bias, tags };
 }
-
-// ─────────────────────────────────────────────────────────────────
-// Per-character option scoring
-// ─────────────────────────────────────────────────────────────────
 
 interface OptionScore {
   score: number;
@@ -259,7 +198,7 @@ function scoreOption(
   if (divine.tags.length) allTags.push(...divine.tags);
   if (state.tags.length) allTags.push(...state.tags);
   if (classBias.tags.length) allTags.push(...classBias.tags);
-  if (interventionBoost > 0.1) allTags.push('A divine omen nudges toward this choice.');
+  if (interventionBoost > 0.1) allTags.push('神聖神諭引導著向此選擇靠攏。');
 
   const totalScore =
     option.baseWeight +
@@ -283,10 +222,6 @@ function scoreOption(
   return { score: totalScore, tags: allTags, breakdown };
 }
 
-// ─────────────────────────────────────────────────────────────────
-// Full party decision resolution
-// ─────────────────────────────────────────────────────────────────
-
 export interface PartyDecisionResult {
   characterDecisions: CharacterDecision[];
   aggregateScores: Record<string, number>;
@@ -296,15 +231,6 @@ export interface PartyDecisionResult {
   divergenceNote?: string;
 }
 
-/**
- * Runs the full decision engine for an event.
- *
- * @param event - The current game event
- * @param party - Living party members
- * @param intent - Parsed divine intent
- * @param activeOmenOptionId - If player used Omen, which option gets a boost
- * @param activeBlessingBoost - If player used Blessing, party loyalty is boosted
- */
 export function resolvePartyDecision(
   event: GameEvent,
   party: Adventurer[],
@@ -315,22 +241,19 @@ export function resolvePartyDecision(
   const living = party.filter((c) => c.alive);
   const characterDecisions: CharacterDecision[] = [];
 
-  // Score each option for each character
   for (const character of living) {
     const scores: Record<string, number> = {};
     const tags: Record<string, string[]> = {};
     const breakdown: Record<string, DecisionBreakdown> = {};
 
     for (const option of event.options) {
-      const interventionBoost =
-        activeOmenOptionId === option.id ? 0.5 : 0;
+      const interventionBoost = activeOmenOptionId === option.id ? 0.5 : 0;
       const result = scoreOption(character, option, intent, interventionBoost);
       scores[option.id] = result.score;
       tags[option.id] = result.tags;
       breakdown[option.id] = result.breakdown;
     }
 
-    // Determine which option this character prefers
     const preferredOptionId = Object.entries(scores).reduce(
       (best, [id, score]) => (score > scores[best] ? id : best),
       event.options[0].id
@@ -346,8 +269,6 @@ export function resolvePartyDecision(
     });
   }
 
-  // Aggregate scores weighted by character loyalty
-  // Blessing boosts effective loyalty by 20 points for this resolution
   const aggregateScores: Record<string, number> = {};
   for (const option of event.options) {
     aggregateScores[option.id] = 0;
@@ -355,31 +276,24 @@ export function resolvePartyDecision(
 
   for (const decision of characterDecisions) {
     const character = living.find((c) => c.id === decision.characterId)!;
-    const effectiveLoyalty = Math.min(
-      100,
-      character.loyalty + (activeBlessingBoost ? 20 : 0)
-    );
+    const effectiveLoyalty = Math.min(100, character.loyalty + (activeBlessingBoost ? 20 : 0));
     const loyaltyWeight = effectiveLoyalty / 100;
 
     for (const option of event.options) {
-      aggregateScores[option.id] +=
-        (decision.scores[option.id] ?? 0) * loyaltyWeight;
+      aggregateScores[option.id] += (decision.scores[option.id] ?? 0) * loyaltyWeight;
     }
   }
 
-  // Normalize by party size
   const partySize = living.length;
   for (const key of Object.keys(aggregateScores)) {
     aggregateScores[key] /= partySize;
   }
 
-  // Determine winning option
   const winningOptionId = Object.entries(aggregateScores).reduce(
     (best, [id, score]) => (score > aggregateScores[best] ? id : best),
     event.options[0].id
   );
 
-  // Determine divine-preferred option (purely from divine signals, no traits/state)
   const divineScores: Record<string, number> = {};
   for (const option of event.options) {
     let divineScore = 0;
@@ -401,7 +315,7 @@ export function resolvePartyDecision(
   if (!followedDivineIntent) {
     const winner = event.options.find((o) => o.id === winningOptionId);
     const divine = event.options.find((o) => o.id === divinePreferredOptionId);
-    divergenceNote = `The party chose "${winner?.label}" despite your intent toward "${divine?.label}".`;
+    divergenceNote = `隊伍選擇了「${winner?.label}」，違背了您欲達成「${divine?.label}」的意圖。`;
   }
 
   return {
@@ -413,10 +327,6 @@ export function resolvePartyDecision(
     divergenceNote,
   };
 }
-
-// ─────────────────────────────────────────────────────────────────
-// Helper: pick most explanatory tags for display (max N)
-// ─────────────────────────────────────────────────────────────────
 
 export function topTags(tags: string[], max = 3): string[] {
   return tags.slice(0, max);

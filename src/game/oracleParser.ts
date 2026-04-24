@@ -5,24 +5,6 @@ import type {
   Adventurer,
 } from '../types';
 
-/**
- * Oracle Parser
- * ─────────────
- * Converts player-defined OracleConfig into a normalized ParsedSignals object.
- *
- * Signal values range 0–1. They represent how strongly the god's will
- * leans in each direction. The decision engine reads these values to score
- * how well each event option aligns with divine intent.
- *
- * HOW TO EXTEND:
- *   Add keywords to KEYWORD_RULES with a modifier map.
- *   Add new SecondaryPriority entries to PRIORITY_MODIFIERS.
- */
-
-// ─────────────────────────────────────────────────────────────────
-// Base signal seeds from primary goal
-// ─────────────────────────────────────────────────────────────────
-
 const PRIMARY_GOAL_SEEDS: Record<string, Partial<ParsedSignals>> = {
   recover_relic: {
     missionFocus: 0.85,
@@ -50,10 +32,6 @@ const PRIMARY_GOAL_SEEDS: Record<string, Partial<ParsedSignals>> = {
   },
 };
 
-// ─────────────────────────────────────────────────────────────────
-// Modifiers from secondary priorities
-// ─────────────────────────────────────────────────────────────────
-
 const PRIORITY_MODIFIERS: Record<string, Partial<ParsedSignals>> = {
   survival: { survivalPriority: +0.3, aggression: -0.15 },
   help_wounded: { mercyPriority: +0.35, urgency: -0.1 },
@@ -62,19 +40,11 @@ const PRIORITY_MODIFIERS: Record<string, Partial<ParsedSignals>> = {
   move_quickly: { urgency: +0.3, stealthPreference: -0.1 },
 };
 
-// ─────────────────────────────────────────────────────────────────
-// Modifiers from risk tolerance
-// ─────────────────────────────────────────────────────────────────
-
 const RISK_MODIFIERS: Record<string, Partial<ParsedSignals>> = {
   low: { survivalPriority: +0.2, aggression: -0.2, stealthPreference: +0.1 },
   medium: {},
   high: { aggression: +0.2, survivalPriority: -0.15, urgency: +0.1 },
 };
-
-// ─────────────────────────────────────────────────────────────────
-// Keyword parsing for free-text addendum
-// ─────────────────────────────────────────────────────────────────
 
 interface KeywordRule {
   keywords: string[];
@@ -83,35 +53,37 @@ interface KeywordRule {
 
 const KEYWORD_RULES: KeywordRule[] = [
   {
-    keywords: ['save', 'rescue', 'help', 'protect'],
+    keywords: ['save', 'rescue', 'help', 'protect', '救援', '保護', '救助', '幫助'],
     modifiers: { mercyPriority: +0.15, survivalPriority: +0.1 },
   },
   {
-    keywords: ['do not fight', 'avoid battle', 'avoid conflict', 'no combat', 'stay hidden'],
+    keywords: ['do not fight', 'avoid battle', 'avoid conflict', 'no combat', 'stay hidden',
+               '不得戰鬥', '避免戰鬥', '避免衝突', '潛行', '保持隱蔽'],
     modifiers: { aggression: -0.2, stealthPreference: +0.2 },
   },
   {
-    keywords: ['treasure', 'loot', 'gold', 'wealth', 'riches'],
+    keywords: ['treasure', 'loot', 'gold', 'wealth', 'riches', '財寶', '黃金', '財富', '寶藏'],
     modifiers: { greedAllowance: +0.2 },
   },
   {
-    keywords: ['hurry', 'quickly', 'fast', 'rush', 'speed', 'urgent'],
+    keywords: ['hurry', 'quickly', 'fast', 'rush', 'speed', 'urgent', '加速', '快速', '趕快', '緊急'],
     modifiers: { urgency: +0.2 },
   },
   {
-    keywords: ['safe', 'survive', 'careful', 'cautious', 'caution'],
+    keywords: ['safe', 'survive', 'careful', 'cautious', 'caution', '安全', '謹慎', '小心', '求生'],
     modifiers: { survivalPriority: +0.2, aggression: -0.1 },
   },
   {
-    keywords: ['complete the mission', 'relic first', 'the relic', 'mission only', 'stay focused'],
+    keywords: ['complete the mission', 'relic first', 'the relic', 'mission only', 'stay focused',
+               '任務優先', '神器優先', '專注任務', '完成任務'],
     modifiers: { missionFocus: +0.15, greedAllowance: -0.1 },
   },
   {
-    keywords: ['attack', 'destroy', 'fight', 'aggressive', 'crush'],
+    keywords: ['attack', 'destroy', 'fight', 'aggressive', 'crush', '攻擊', '消滅', '戰鬥', '進攻'],
     modifiers: { aggression: +0.2, survivalPriority: -0.1 },
   },
   {
-    keywords: ['stealth', 'sneak', 'quiet', 'silent', 'unseen'],
+    keywords: ['stealth', 'sneak', 'quiet', 'silent', 'unseen', '潛行', '靜默', '隱蔽', '悄悄'],
     modifiers: { stealthPreference: +0.2, aggression: -0.1 },
   },
 ];
@@ -133,19 +105,12 @@ function clamp(v: number, min = 0, max = 1): number {
   return Math.max(min, Math.min(max, v));
 }
 
-function applyPartial(
-  signals: ParsedSignals,
-  partial: Partial<ParsedSignals>
-): void {
+function applyPartial(signals: ParsedSignals, partial: Partial<ParsedSignals>): void {
   for (const [key, delta] of Object.entries(partial)) {
     const k = key as keyof ParsedSignals;
     signals[k] = clamp(signals[k] + (delta ?? 0));
   }
 }
-
-// ─────────────────────────────────────────────────────────────────
-// Main parser entry point
-// ─────────────────────────────────────────────────────────────────
 
 export function parseOracle(config: OracleConfig): DivinIntent {
   const signals: ParsedSignals = {
@@ -158,21 +123,17 @@ export function parseOracle(config: OracleConfig): DivinIntent {
     missionFocus: 0.5,
   };
 
-  // Apply primary goal seeds
   const goalSeeds = PRIMARY_GOAL_SEEDS[config.primaryGoal] ?? {};
   applyPartial(signals, goalSeeds);
 
-  // Apply secondary priority modifiers
   for (const priority of config.secondaryPriorities) {
     const mods = PRIORITY_MODIFIERS[priority] ?? {};
     applyPartial(signals, mods);
   }
 
-  // Apply risk tolerance modifiers
   const riskMods = RISK_MODIFIERS[config.riskTolerance] ?? {};
   applyPartial(signals, riskMods);
 
-  // Parse free-text addendum
   if (config.addendumText.trim().length > 0) {
     applyKeywordParsing(config.addendumText, signals);
   }
@@ -186,14 +147,6 @@ export function parseOracle(config: OracleConfig): DivinIntent {
   };
 }
 
-// ─────────────────────────────────────────────────────────────────
-// Character interpretation preview
-// ─────────────────────────────────────────────────────────────────
-
-/**
- * Returns 2–3 human-readable lines explaining how a character will
- * likely interpret the oracle, given their traits and faith.
- */
 export function generateCharacterInterpretation(
   character: Adventurer,
   intent: DivinIntent
@@ -202,86 +155,57 @@ export function generateCharacterInterpretation(
   const { traits, faith, riskBias, name } = character;
   const s = intent.parsedSignals;
 
-  // Faith relationship with divine intent
   if (traits.includes('Devout')) {
-    lines.push(
-      `${name} receives the divine word as sacred law and will prioritize it above personal instinct.`
-    );
+    lines.push(`${name}將神意視為神聖法令，會將其凌駕於個人本能之上。`);
   } else if (traits.includes('Skeptical')) {
-    lines.push(
-      `${name} regards divine guidance with suspicion — they'll follow it only when it aligns with self-interest.`
-    );
+    lines.push(`${name}以懷疑的眼光看待神聖指引——只有當神意與自身利益一致時，才會從命。`);
   } else if (faith >= 70) {
-    lines.push(
-      `${name} holds strong faith and will weight your commands heavily when making choices.`
-    );
+    lines.push(`${name}信仰深厚，在做出選擇時會將您的指令置於重要地位。`);
   } else if (faith <= 35) {
-    lines.push(
-      `${name}'s weak faith means your oracle will influence them only mildly; their own instincts lead.`
-    );
+    lines.push(`${name}信仰薄弱，神諭的影響力對他們僅屬輕微；其本能才是行動的主導。`);
   } else {
-    lines.push(
-      `${name} will balance your instructions against their own judgment — expect reasonable compliance.`
-    );
+    lines.push(`${name}會在您的指令與自身判斷之間尋求平衡——可以期待合理的服從。`);
   }
 
-  // Key trait conflicts or alignments
   if (traits.includes('Compassionate') && s.mercyPriority >= 0.5) {
-    lines.push(
-      `Their compassion aligns strongly with your mercy priority — they'll drive the party toward helping others.`
-    );
+    lines.push(`他們的慈悲心與您的仁慈優先方向高度契合——他們將引導隊伍走向援助他人的選擇。`);
   } else if (traits.includes('Compassionate') && s.mercyPriority < 0.3) {
-    lines.push(
-      `Their compassionate nature may conflict with your mission-first directive; expect hesitation at moral dilemmas.`
-    );
+    lines.push(`他們慈悲的天性可能與您「任務優先」的指令相衝突；道德兩難面前，預期他們會猶豫不決。`);
   }
 
   if (traits.includes('Greedy') && s.greedAllowance < 0.2) {
-    lines.push(
-      `Greed will pull ${name} toward wealth even when you've forbidden it — watch for deviation at temptation events.`
-    );
+    lines.push(`貪慾將驅使${name}在您明令禁止的情況下仍追逐財富——在誘惑事件中請留意偏軌行為。`);
   } else if (traits.includes('Greedy') && s.greedAllowance >= 0.4) {
-    lines.push(
-      `${name}'s greed aligns with your tolerance for wealth-seeking; they'll pursue it eagerly.`
-    );
+    lines.push(`${name}的貪婪與您對財富追求的寬容相符；他們將積極進取地追逐財富。`);
   }
 
   if (traits.includes('Fearful') && s.aggression >= 0.5) {
-    lines.push(
-      `Your aggressive intent will clash with ${name}'s fear — they may resist or slow combat decisions.`
-    );
+    lines.push(`您的侵略性意圖將與${name}的恐懼相衝突——他們可能在戰鬥決策中抵制或拖延。`);
   }
 
   if (traits.includes('Brave') && s.survivalPriority >= 0.7) {
-    lines.push(
-      `${name}'s bravery may override your survival-first command; they'll instinctively press forward when caution is needed.`
-    );
+    lines.push(`${name}的勇氣可能會凌駕您「求生優先」的指令；在需要謹慎之處，他們的本能會促使他們奮勇前進。`);
   }
 
   if (traits.includes('Stubborn') && riskBias === 'high') {
-    lines.push(
-      `Once ${name} commits to a course, they rarely reverse — useful in a fight, dangerous near precipices.`
-    );
+    lines.push(`一旦${name}定下方向，便極難回頭——在戰鬥中大有用處，在懸崖邊卻危機四伏。`);
   }
 
   if (traits.includes('Loyal') && s.missionFocus >= 0.6) {
-    lines.push(`${name}'s loyalty reinforces your mission focus — they'll pull the party toward the objective.`);
+    lines.push(`${name}的忠誠強化了您對任務的專注——他們將引領隊伍邁向目標。`);
   }
 
   if (traits.includes('Rational') && s.aggression >= 0.6) {
-    lines.push(
-      `${name} will calculate risk carefully before committing to your aggressive directive — expect moderation.`
-    );
+    lines.push(`${name}在執行您激進的指令前會謹慎評估風險——預期他們會有所節制。`);
   }
 
-  // Default closing line if only one was generated
   if (lines.length === 1) {
     if (riskBias === 'high') {
-      lines.push(`As a risk-tolerant adventurer, ${name} will skew toward bold options when stakes are unclear.`);
+      lines.push(`身為一個願意冒險的探險者，當賭注不明確時，${name}會傾向於採取大膽的選項。`);
     } else if (riskBias === 'low') {
-      lines.push(`${name}'s cautious nature will favor safe choices even when you've asked for urgency.`);
+      lines.push(`${name}謹慎的天性將使其即便在您要求緊迫行動時，仍偏向穩妥的選擇。`);
     } else {
-      lines.push(`${name} will generally follow the consensus of the party when divine guidance is ambiguous.`);
+      lines.push(`當神聖指引模糊不清時，${name}通常會遵循隊伍的共識。`);
     }
   }
 
