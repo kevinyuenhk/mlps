@@ -86,7 +86,7 @@ export function moveTokenAlongPath(
   return { token: nextToken, reachedPathEnd: false };
 }
 
-export function spawnTokenOnPath(map: MapData, spawn: Vec2, speed = 64): PartyTokenState {
+export function spawnTokenOnPath(map: MapData, spawn: Vec2, speed = 96): PartyTokenState {
   return {
     currentMapId: map.id,
     currentPathId: map.startPathId,
