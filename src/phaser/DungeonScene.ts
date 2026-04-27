@@ -228,8 +228,10 @@ export class DungeonScene extends Phaser.Scene {
     this.mapBannerSubtext.setText(`地圖主題：${map.special}`);
 
     this.cameras.main.setBounds(0, 0, map.width, map.height);
-    this.cameras.main.startFollow(this.partyContainer, true, 0.08, 0.08);
-    this.cameras.main.setZoom(this.scale.height > this.scale.width ? 1.72 : 1.38);
+    this.cameras.main.startFollow(this.partyContainer, true, 0.06, 0.06);
+    // Zoom tuned for MMORPG-style close-follow view on 3000×2250 world
+    this.cameras.main.setZoom(this.scale.height > this.scale.width ? 1.1 : 0.9);
+    this.cameras.main.flash(400, 20, 30, 50, false);
   }
 
   private stepMovement(map: MapData, delta: number) {
@@ -304,14 +306,14 @@ export class DungeonScene extends Phaser.Scene {
       map.width,
       map.height,
       this.snapshot.revealedAreas[map.id] ?? [],
-      { x: this.liveToken.x, y: this.liveToken.y, radius: 180 }
+      { x: this.liveToken.x, y: this.liveToken.y, radius: 270 }
     );
 
     if (this.time.now - this.lastSyncAt > 180) {
       this.lastSyncAt = this.time.now;
       this.callbacks.onPositionSync?.({
         token: { ...this.liveToken },
-        revealPoint: { x: this.liveToken.x, y: this.liveToken.y, radius: 180 },
+        revealPoint: { x: this.liveToken.x, y: this.liveToken.y, radius: 270 },
         nearestExitLabel: nearestExitLabel(map, this.liveToken),
       });
     }

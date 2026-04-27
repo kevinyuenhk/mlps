@@ -1,6 +1,27 @@
 import Phaser from 'phaser';
 import type { Interactable, MapData, MapDecoration, MapObstacle, PathData, Vec2 } from '../types';
 
+type BiomeCategory = 'grassland' | 'forest' | 'ruins' | 'dungeon' | 'shrine' | 'boss' | 'exit';
+
+const BIOME_MAP: Record<string, BiomeCategory> = {
+  expedition_entrance: 'grassland',
+  bone_foyer: 'dungeon',
+  broken_bridge: 'ruins',
+  wounded_crosshall: 'forest',
+  echo_corridor: 'dungeon',
+  glitter_vault: 'ruins',
+  echo_shrine: 'shrine',
+  watch_crypt: 'dungeon',
+  rift_crossing: 'forest',
+  ante_shrine: 'shrine',
+  guardian_tomb: 'boss',
+  stone_gate: 'exit',
+};
+
+function getBiome(map: MapData): BiomeCategory {
+  return BIOME_MAP[map.id] ?? 'dungeon';
+}
+
 type VisibilityState = {
   discoveredExitIds: string[];
   clearedInteractableIds: string[];
@@ -49,7 +70,28 @@ function mixColor(a: number, b: number, amount: number) {
   );
 }
 
+const BIOME_PATH_FILL: Record<BiomeCategory, number> = {
+  grassland: 0xc8b87a,
+  forest:    0x8a7a50,
+  ruins:     0xb8a882,
+  dungeon:   0x8e8a82,
+  shrine:    0xc8dff4,
+  boss:      0x9a2828,
+  exit:      0xa0a8b8,
+};
+
+const BIOME_PATH_TEXTURE: Record<BiomeCategory, number> = {
+  grassland: 0xe8d898,
+  forest:    0xa89a6a,
+  ruins:     0xd8c8a0,
+  dungeon:   0xb0acaa,
+  shrine:    0xe0f0ff,
+  boss:      0xc04040,
+  exit:      0xc0c8d8,
+};
+
 function makeTheme(map: MapData): ThemePalette {
+  const biome = getBiome(map);
   const base = mixColor(map.bgColor, 0x050505, 0.52);
   const shadow = mixColor(base, 0x000000, 0.4);
   const trench = mixColor(base, 0x000000, 0.58);
@@ -60,11 +102,11 @@ function makeTheme(map: MapData): ThemePalette {
     shadow,
     trench,
     highlight,
-    pathFill: 0xd4c8a0,
-    pathEdge: 0x1a1510,
-    pathTexture: 0xefe3be,
-    zoneFill: 0xa81f1f,
-    zoneStroke: 0xff746a,
+    pathFill: BIOME_PATH_FILL[biome],
+    pathEdge: biome === 'grassland' || biome === 'forest' ? 0x1a2a0a : 0x1a1510,
+    pathTexture: BIOME_PATH_TEXTURE[biome],
+    zoneFill: biome === 'boss' ? 0xcc1010 : 0xa81f1f,
+    zoneStroke: biome === 'boss' ? 0xff3030 : 0xff746a,
     exitGlow: 0xffd36a,
     exitEdge: 0x6d4a13,
     obstacleFill: mixColor(map.bgColor, 0x090909, 0.66),
@@ -106,39 +148,186 @@ function pointOnPath(points: Vec2[], distance: number) {
   };
 }
 
+function drawGrasslandBackground(g: Phaser.GameObjects.Graphics, map: MapData, theme: ThemePalette) {
+  const bands = 12;
+  for (let i = 0; i < bands; i++) {
+    const t = i / (bands - 1);
+    g.fillStyle(mixColor(0x5a7a40, 0x3a5228, t * 0.8), 1);
+    g.fillRect(0, (map.height / bands) * i, map.width, map.height / bands + 2);
+  }
+  g.fillStyle(0x6a9050, 0.18);
+  g.fillEllipse(map.width * 0.3, map.height * 0.2, map.width * 0.8, map.height * 0.5);
+  for (let i = 0; i < 320; i++) {
+    const x = (i * 197) % map.width;
+    const y = (i * 113 + map.order * 53) % map.height;
+    g.fillStyle(i % 4 === 0 ? 0x7ab050 : 0x4a6830, i % 4 === 0 ? 0.06 : 0.03);
+    g.fillCircle(x, y, 2 + (i % 4));
+  }
+  for (let i = 0; i < 28; i++) {
+    const x = (i * 107) % map.width;
+    const y = (i * 83 + map.order * 29) % map.height;
+    g.fillStyle(0x8ac860, 0.09);
+    g.fillRect(x, y, 3 + (i % 5), 18 + (i % 12));
+  }
+}
+
+function drawForestBackground(g: Phaser.GameObjects.Graphics, map: MapData, theme: ThemePalette) {
+  g.fillStyle(0x122010, 1);
+  g.fillRect(0, 0, map.width, map.height);
+  for (let i = 0; i < 60; i++) {
+    const x = (i * 211) % map.width;
+    const y = (i * 137 + map.order * 61) % map.height;
+    const r = 80 + (i % 6) * 30;
+    g.fillStyle(0x1a3018, 0.55 + (i % 3) * 0.12);
+    g.fillCircle(x, y, r);
+    g.fillStyle(0x2a4824, 0.2);
+    g.fillCircle(x + 20, y - 20, r * 0.6);
+  }
+  g.fillStyle(0x4a8030, 0.08);
+  g.fillEllipse(map.width * 0.5, map.height * 0.4, map.width * 0.9, map.height * 0.7);
+  for (let i = 0; i < 14; i++) {
+    const x = (i * 193) % map.width;
+    g.lineStyle(1, 0x60c040, 0.06);
+    g.beginPath();
+    g.moveTo(x, 0);
+    g.lineTo(x + 80, map.height);
+    g.strokePath();
+  }
+}
+
+function drawRuinsBackground(g: Phaser.GameObjects.Graphics, map: MapData, theme: ThemePalette) {
+  g.fillStyle(0x2e2214, 1);
+  g.fillRect(0, 0, map.width, map.height);
+  const tileW = 120, tileH = 100;
+  for (let col = 0; col < map.width / tileW + 1; col++) {
+    for (let row = 0; row < map.height / tileH + 1; row++) {
+      const shade = (col + row) % 2 === 0 ? 0x362a1a : 0x2e2214;
+      g.fillStyle(shade, 1);
+      g.fillRect(col * tileW, row * tileH, tileW - 1, tileH - 1);
+    }
+  }
+  for (let i = 0; i < 22; i++) {
+    const x = (i * 173) % map.width;
+    const y = (i * 97 + map.order * 43) % map.height;
+    g.lineStyle(2, 0x1a1008, 0.5);
+    g.beginPath();
+    g.moveTo(x, y);
+    g.lineTo(x + 60 + (i % 4) * 20, y + 8 + (i % 3) * 6);
+    g.strokePath();
+  }
+  g.fillStyle(theme.highlight, 0.12);
+  g.fillEllipse(map.width * 0.25, map.height * 0.22, map.width * 0.6, map.height * 0.4);
+}
+
+function drawDungeonBackground(g: Phaser.GameObjects.Graphics, map: MapData, theme: ThemePalette) {
+  g.fillStyle(mixColor(map.bgColor, 0x020202, 0.6), 1);
+  g.fillRect(0, 0, map.width, map.height);
+  const tileW = 96, tileH = 96;
+  for (let col = 0; col < map.width / tileW + 1; col++) {
+    for (let row = 0; row < map.height / tileH + 1; row++) {
+      const shade = (col + row) % 2 === 0 ? 0x1c1c24 : 0x181820;
+      g.fillStyle(shade, 0.9);
+      g.fillRect(col * tileW + 1, row * tileH + 1, tileW - 2, tileH - 2);
+    }
+  }
+  g.fillStyle(theme.highlight, 0.14);
+  g.fillEllipse(map.width * 0.18, map.height * 0.16, map.width * 0.65, map.height * 0.4);
+  g.fillStyle(theme.shadow, 0.42);
+  g.fillEllipse(map.width * 0.8, map.height * 0.8, map.width * 0.8, map.height * 0.55);
+  for (let i = 0; i < 160; i++) {
+    const x = (i * 151) % map.width;
+    const y = (i * 89 + map.order * 47) % map.height;
+    g.fillStyle(0xffffff, 0.015);
+    g.fillCircle(x, y, 1 + (i % 2));
+  }
+}
+
+function drawShrineBackground(g: Phaser.GameObjects.Graphics, map: MapData, theme: ThemePalette) {
+  const bands = 10;
+  for (let i = 0; i < bands; i++) {
+    const t = i / (bands - 1);
+    g.fillStyle(mixColor(0x1e2c40, 0x0c1828, t * 0.85), 1);
+    g.fillRect(0, (map.height / bands) * i, map.width, map.height / bands + 2);
+  }
+  const cx = map.width * 0.5, cy = map.height * 0.5;
+  for (let r = 0; r < 8; r++) {
+    g.fillStyle(0x90c8f8, 0.025 + r * 0.006);
+    g.fillCircle(cx, cy, 200 + r * 160);
+  }
+  for (let i = 0; i < 16; i++) {
+    const angle = (i / 16) * Math.PI * 2;
+    g.lineStyle(60, 0xb0deff, 0.04);
+    g.beginPath();
+    g.moveTo(cx, cy);
+    g.lineTo(cx + Math.cos(angle) * map.width * 0.8, cy + Math.sin(angle) * map.height * 0.8);
+    g.strokePath();
+  }
+  for (let i = 0; i < 120; i++) {
+    const x = (i * 167) % map.width;
+    const y = (i * 103 + map.order * 59) % map.height;
+    g.fillStyle(0xd0eeff, 0.05 + (i % 3) * 0.02);
+    g.fillCircle(x, y, 1 + (i % 3));
+  }
+}
+
+function drawBossBackground(g: Phaser.GameObjects.Graphics, map: MapData, theme: ThemePalette) {
+  g.fillStyle(0x200000, 1);
+  g.fillRect(0, 0, map.width, map.height);
+  const cx = map.width * 0.72, cy = map.height * 0.5;
+  for (let r = 0; r < 6; r++) {
+    g.fillStyle(0x600000, 0.15 + r * 0.04);
+    g.fillCircle(cx, cy, 180 + r * 140);
+  }
+  for (let i = 0; i < 24; i++) {
+    const angle = (i / 24) * Math.PI * 2;
+    const len = 300 + (i % 5) * 120;
+    g.lineStyle(3 + (i % 3), 0x8a0000, 0.25 - i * 0.006);
+    g.beginPath();
+    g.moveTo(cx, cy);
+    g.lineTo(cx + Math.cos(angle) * len, cy + Math.sin(angle) * len);
+    g.strokePath();
+  }
+  for (let i = 0; i < 18; i++) {
+    const x = (i * 163) % map.width;
+    const y = (i * 107 + 31) % map.height;
+    g.lineStyle(2, 0x440000, 0.4);
+    g.beginPath();
+    g.moveTo(x, y);
+    g.lineTo(x + 40 + (i % 4) * 15, y + 30 + (i % 3) * 20);
+    g.strokePath();
+  }
+  g.fillStyle(0xff2020, 0.04);
+  g.fillRect(0, 0, map.width, map.height);
+}
+
+function drawExitBackground(g: Phaser.GameObjects.Graphics, map: MapData, theme: ThemePalette) {
+  const bands = 10;
+  for (let i = 0; i < bands; i++) {
+    const t = i / (bands - 1);
+    g.fillStyle(mixColor(0x383848, 0x1c1c2c, t * 0.8), 1);
+    g.fillRect(0, (map.height / bands) * i, map.width, map.height / bands + 2);
+  }
+  g.fillStyle(0x8090b0, 0.1);
+  g.fillEllipse(map.width * 0.7, map.height * 0.3, map.width * 0.7, map.height * 0.5);
+  for (let i = 0; i < 100; i++) {
+    const x = (i * 151) % map.width;
+    const y = (i * 89 + map.order * 47) % map.height;
+    g.fillStyle(0xc0d0e0, 0.025);
+    g.fillCircle(x, y, 1 + (i % 3));
+  }
+}
+
 function drawBackground(scene: Phaser.Scene, map: MapData, theme: ThemePalette) {
-  const background = scene.add.graphics();
-  const bands = 9;
-
-  for (let index = 0; index < bands; index += 1) {
-    const blend = index / Math.max(1, bands - 1);
-    background.fillStyle(mixColor(theme.highlight, theme.base, blend * 0.9), 1);
-    background.fillRect(0, (map.height / bands) * index, map.width, map.height / bands + 2);
-  }
-
-  background.fillStyle(theme.highlight, 0.16);
-  background.fillEllipse(map.width * 0.2, map.height * 0.18, map.width * 0.7, map.height * 0.42);
-  background.fillStyle(theme.shadow, 0.38);
-  background.fillEllipse(map.width * 0.82, map.height * 0.78, map.width * 0.84, map.height * 0.6);
-
-  for (let index = 0; index < 180; index += 1) {
-    const x = (index * 151) % map.width;
-    const y = (index * 89 + map.order * 47) % map.height;
-    const radius = 1 + (index % 3);
-    background.fillStyle(index % 5 === 0 ? theme.highlight : 0xffffff, index % 5 === 0 ? 0.045 : 0.02);
-    background.fillCircle(x, y, radius);
-  }
-
-  for (let index = 0; index < 16; index += 1) {
-    const offset = (index / 15) * map.height;
-    background.lineStyle(2, theme.shadow, 0.1);
-    background.beginPath();
-    background.moveTo(0, offset + 40 * Math.sin(index));
-    background.lineTo(map.width, offset - 36 * Math.cos(index * 0.7));
-    background.strokePath();
-  }
-
-  return background;
+  const g = scene.add.graphics();
+  const biome = getBiome(map);
+  if (biome === 'grassland') drawGrasslandBackground(g, map, theme);
+  else if (biome === 'forest') drawForestBackground(g, map, theme);
+  else if (biome === 'ruins') drawRuinsBackground(g, map, theme);
+  else if (biome === 'shrine') drawShrineBackground(g, map, theme);
+  else if (biome === 'boss') drawBossBackground(g, map, theme);
+  else if (biome === 'exit') drawExitBackground(g, map, theme);
+  else drawDungeonBackground(g, map, theme);
+  return g;
 }
 
 function drawSinglePath(graphics: Phaser.GameObjects.Graphics, path: PathData, theme: ThemePalette) {
@@ -248,6 +437,53 @@ function drawObstacles(scene: Phaser.Scene, map: MapData, theme: ThemePalette) {
   }
 
   return graphics;
+}
+
+function drawZoneLabel(scene: Phaser.Scene, map: MapData) {
+  const container = scene.add.container(0, 0);
+  const biome = getBiome(map);
+
+  const labelColor: Record<BiomeCategory, string> = {
+    grassland: '#c8f0a0',
+    forest: '#80c860',
+    ruins: '#d4b880',
+    dungeon: '#a0a8c0',
+    shrine: '#c0e8ff',
+    boss: '#ff8080',
+    exit: '#b0c0d8',
+  };
+
+  const bg = scene.add.graphics();
+  bg.fillStyle(0x000000, 0.28);
+  bg.fillRoundedRect(32, 32, 480, 96, 12);
+  bg.lineStyle(2, 0xffffff, 0.12);
+  bg.strokeRoundedRect(32, 32, 480, 96, 12);
+
+  const accent = scene.add.graphics();
+  accent.fillStyle(0xffffff, 0.5);
+  accent.fillRect(48, 48, 6, 64);
+
+  const title = scene.add.text(70, 44, map.name, {
+    fontFamily: '"Noto Serif TC", "PingFang TC", serif',
+    fontSize: '38px',
+    color: labelColor[biome],
+    fontStyle: '700',
+    stroke: '#000000',
+    strokeThickness: 5,
+  });
+
+  const sub = scene.add.text(70, 88, map.special + '  ·  ' + map.description.slice(0, 28) + '…', {
+    fontFamily: '"Noto Sans TC", "PingFang TC", sans-serif',
+    fontSize: '18px',
+    color: '#c8c8d0',
+    stroke: '#000000',
+    strokeThickness: 3,
+  });
+
+  container.add([bg, accent, title, sub]);
+  container.setScrollFactor(0);
+  container.setDepth(35);
+  return container;
 }
 
 function drawDecoration(graphics: Phaser.GameObjects.Graphics, item: MapDecoration, theme: ThemePalette) {
@@ -493,6 +729,7 @@ export function renderMap(scene: Phaser.Scene, map: MapData, visibility: Visibil
   world.add(drawDecorations(scene, map, theme));
   world.add(drawInteractables(scene, visibility, map.interactables));
   world.add(drawExitMarkers(scene, visibility, map.exits));
+  world.add(drawZoneLabel(scene, map));
 
   return world;
 }

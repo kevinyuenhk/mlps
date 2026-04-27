@@ -10,8 +10,9 @@ import type {
   Vec2,
 } from '../types';
 
-const WORLD_WIDTH = 2000;
-const WORLD_HEIGHT = 1500;
+const WORLD_WIDTH = 3000;
+const WORLD_HEIGHT = 2250;
+const SCALE = 1.5;
 
 function p(x: number, y: number): Vec2 {
   return { x, y };
@@ -40,10 +41,10 @@ function makeObstacles(color: number, seed: number): MapObstacle[] {
 
   return templates.map((template, index) => {
     const wave = seed * 17 + index * 31;
-    const offsetX = (wave % 5) * 18 - 36;
-    const offsetY = (wave % 7) * 16 - 48;
-    const x = clamp(template.x + offsetX, 120, WORLD_WIDTH - 120);
-    const y = clamp(template.y + offsetY, 120, WORLD_HEIGHT - 120);
+    const offsetX = (wave % 5) * 24 - 48;
+    const offsetY = (wave % 7) * 22 - 56;
+    const x = clamp(Math.round(template.x * SCALE) + offsetX, 180, WORLD_WIDTH - 180);
+    const y = clamp(Math.round(template.y * SCALE) + offsetY, 180, WORLD_HEIGHT - 180);
     return {
       id: `obs-${index + 1}`,
       kind: template.kind,
@@ -80,13 +81,13 @@ function makeDecorations(color: number, seed: number): MapDecoration[] {
 
   return templates.map((template, index) => {
     const wave = seed * 19 + index * 29;
-    const offsetX = (wave % 6) * 14 - 35;
-    const offsetY = (wave % 5) * 18 - 36;
+    const offsetX = (wave % 6) * 20 - 50;
+    const offsetY = (wave % 5) * 24 - 50;
     return {
       id: `dec-${index + 1}`,
       kind: template.kind,
-      x: clamp(template.x + offsetX, 80, WORLD_WIDTH - 80),
-      y: clamp(template.y + offsetY, 80, WORLD_HEIGHT - 80),
+      x: clamp(Math.round(template.x * SCALE) + offsetX, 120, WORLD_WIDTH - 120),
+      y: clamp(Math.round(template.y * SCALE) + offsetY, 120, WORLD_HEIGHT - 120),
       width: template.width,
       height: template.height,
       color,
@@ -107,6 +108,10 @@ function exit(
   return { id, x, y, radius: 70, label, targetMapId, targetSpawnPoint, visible };
 }
 
+function scaleVec(v: Vec2): Vec2 {
+  return { x: Math.round(v.x * SCALE), y: Math.round(v.y * SCALE) };
+}
+
 function buildMap(config: Omit<MapData, 'width' | 'height' | 'obstacles' | 'decorations'> & {
   obstacleColor: number;
   decorationColor: number;
@@ -115,21 +120,30 @@ function buildMap(config: Omit<MapData, 'width' | 'height' | 'obstacles' | 'deco
     ...config,
     width: WORLD_WIDTH,
     height: WORLD_HEIGHT,
+    spawnPoint: scaleVec(config.spawnPoint),
     paths: config.paths.map((path) => ({
       ...path,
-      width: Math.max(path.width, 96),
+      width: Math.max(Math.round(path.width * 1.3), 128),
+      points: path.points.map(scaleVec),
     })),
     encounters: config.encounters.map((encounter) => ({
       ...encounter,
-      radius: Math.max(encounter.radius, encounter.variant === 'boss' ? 200 : 170),
+      x: Math.round(encounter.x * SCALE),
+      y: Math.round(encounter.y * SCALE),
+      radius: Math.max(Math.round(encounter.radius * 1.3), encounter.variant === 'boss' ? 260 : 221),
     })),
     exits: config.exits.map((mapExit) => ({
       ...mapExit,
-      radius: Math.max(mapExit.radius, 82),
+      x: Math.round(mapExit.x * SCALE),
+      y: Math.round(mapExit.y * SCALE),
+      radius: Math.max(Math.round(mapExit.radius * 1.3), 110),
+      targetSpawnPoint: scaleVec(mapExit.targetSpawnPoint),
     })),
     interactables: config.interactables.map((interactable) => ({
       ...interactable,
-      radius: Math.max(interactable.radius, 86),
+      x: Math.round(interactable.x * SCALE),
+      y: Math.round(interactable.y * SCALE),
+      radius: Math.max(Math.round(interactable.radius * 1.3), 114),
     })),
     obstacles: makeObstacles(config.obstacleColor, config.order),
     decorations: makeDecorations(config.decorationColor, config.order),
@@ -161,8 +175,8 @@ export const EXPEDITION_MAPS: MapData[] = [
     description: '灰石長坡通向墓窟深處，火光尚算穩定，隊伍在此整好隊形。',
     type: 'entrance',
     icon: '🚪',
-    bgColor: 0x3a4560,
-    accentColor: 0x8fa1b8,
+    bgColor: 0x3a5230,
+    accentColor: 0x8abf60,
     encounterRate: 0.1,
     special: '安全區',
     spawnPoint: p(180, 760),
@@ -204,8 +218,8 @@ export const EXPEDITION_MAPS: MapData[] = [
     description: '暗紅前廳滿地骸骨，初入者必先承受一次死者的擾動。',
     type: 'combat',
     icon: '☠️',
-    bgColor: 0x4a2a2a,
-    accentColor: 0xcc7a7a,
+    bgColor: 0x4a1e1e,
+    accentColor: 0xcc5a5a,
     encounterRate: 0.6,
     special: '必戰',
     spawnPoint: p(180, 760),
@@ -257,8 +271,8 @@ export const EXPEDITION_MAPS: MapData[] = [
     description: '深棕殘橋跨過裂隙，橋面鬆動，隊伍需在危險同速度之間取捨。',
     type: 'hazard',
     icon: '🌉',
-    bgColor: 0x3e3420,
-    accentColor: 0xc59a66,
+    bgColor: 0x4e3820,
+    accentColor: 0xc8944a,
     encounterRate: 0.4,
     special: '有陷阱區',
     spawnPoint: p(180, 830),
@@ -306,8 +320,8 @@ export const EXPEDITION_MAPS: MapData[] = [
     description: '暗綠岔廳有負傷守望者留下的火盆，同時亦有較安全的繞路。',
     type: 'choice',
     icon: '🩹',
-    bgColor: 0x2a4030,
-    accentColor: 0x8dc6a7,
+    bgColor: 0x1e3e28,
+    accentColor: 0x72c490,
     encounterRate: 0.15,
     special: '有 NPC',
     spawnPoint: p(180, 690),
@@ -354,8 +368,8 @@ export const EXPEDITION_MAPS: MapData[] = [
     description: '冷灰長廊筆直延伸，回音令路口判斷更難，隊伍會被迫選邊。',
     type: 'room',
     icon: '🕯️',
-    bgColor: 0x304050,
-    accentColor: 0x9eb1cb,
+    bgColor: 0x2e3c4e,
+    accentColor: 0x8aaed0,
     encounterRate: 0.25,
     special: '長走廊',
     spawnPoint: p(180, 760),
@@ -406,8 +420,8 @@ export const EXPEDITION_MAPS: MapData[] = [
     description: '金棕密室鋪滿反光碎片，風險低，但容易令隊伍偏向財物。',
     type: 'treasure',
     icon: '💰',
-    bgColor: 0x403820,
-    accentColor: 0xe0b15d,
+    bgColor: 0x42380e,
+    accentColor: 0xe8c050,
     encounterRate: 0.1,
     special: '寶箱',
     spawnPoint: p(180, 820),
@@ -454,8 +468,8 @@ export const EXPEDITION_MAPS: MapData[] = [
     description: '聖白殘壇仍有餘溫，係短暫休整地，但亦會拖慢整體推進。',
     type: 'shrine',
     icon: '✨',
-    bgColor: 0x34404c,
-    accentColor: 0xd8e4eb,
+    bgColor: 0x283444,
+    accentColor: 0xc0daf0,
     encounterRate: 0.05,
     special: '恢復',
     spawnPoint: p(180, 680),
@@ -502,8 +516,8 @@ export const EXPEDITION_MAPS: MapData[] = [
     description: '暗紫墓室有成排石棺與高位哨兵，係明顯嘅高壓路段。',
     type: 'combat',
     icon: '⚔️',
-    bgColor: 0x3a2c44,
-    accentColor: 0xba8bf0,
+    bgColor: 0x2c1840,
+    accentColor: 0xb070f0,
     encounterRate: 0.55,
     special: '強敵',
     spawnPoint: p(180, 780),
@@ -551,8 +565,8 @@ export const EXPEDITION_MAPS: MapData[] = [
     description: '腐綠裂痕帶穿插多條破碎路，陷阱同伏兵密度都相當高。',
     type: 'hazard',
     icon: '🕳️',
-    bgColor: 0x344424,
-    accentColor: 0x8eb06a,
+    bgColor: 0x1c3010,
+    accentColor: 0x7ac030,
     encounterRate: 0.65,
     special: '陷阱多',
     spawnPoint: p(180, 760),
@@ -600,8 +614,8 @@ export const EXPEDITION_MAPS: MapData[] = [
     description: '深藍前廊突然安靜落嚟，像決戰前刻意留出的一條呼吸帶。',
     type: 'room',
     icon: '🛕',
-    bgColor: 0x283848,
-    accentColor: 0x7ca0d9,
+    bgColor: 0x1a2040,
+    accentColor: 0x5a8ae0,
     encounterRate: 0.2,
     special: '靜謐',
     spawnPoint: p(180, 720),
@@ -646,8 +660,8 @@ export const EXPEDITION_MAPS: MapData[] = [
     description: '血紅主廳只餘一道壓迫感極重的主路，終點就係守護者。',
     type: 'boss',
     icon: '👑',
-    bgColor: 0x502020,
-    accentColor: 0xf16d6d,
+    bgColor: 0x500010,
+    accentColor: 0xff4040,
     encounterRate: 1,
     special: 'Boss',
     spawnPoint: p(180, 760),
@@ -691,8 +705,8 @@ export const EXPEDITION_MAPS: MapData[] = [
     description: '灰藍石門通往外側，最後只剩一段安靜但漫長的撤離路。',
     type: 'exit',
     icon: '🚶',
-    bgColor: 0x343850,
-    accentColor: 0x9badc6,
+    bgColor: 0x303040,
+    accentColor: 0x9098b8,
     encounterRate: 0,
     special: '出口',
     spawnPoint: p(180, 760),
@@ -732,7 +746,7 @@ export const EXPEDITION_MAPS: MapData[] = [
 ];
 
 export const INITIAL_REVEAL_POINTS: Record<string, FogRevealPoint[]> = {
-  expedition_entrance: [revealPoint(180, 760)],
+  expedition_entrance: [revealPoint(270, 1140)],
 };
 
 export const MAP_SUMMARY_NODES: DungeonNode[] = EXPEDITION_MAPS.map((map) => ({
